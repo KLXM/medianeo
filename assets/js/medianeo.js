@@ -1,4 +1,15 @@
-// Path: redaxo/src/addons/medianeo/assets/js/medianeo.js
+getPreviewUrl(filename) {
+        return 'index.php?rex_media_type=rex_media_small&rex_media_file=' + encodeURIComponent(filename);
+    }
+
+    getPreviewHtml(media) {
+        if (media.isImage) {
+            return `<img src="${this.getPreviewUrl(media.filename)}" alt="${media.title || media.filename}" class="medianeo-preview">`;
+        }
+        
+        const icon = this.getFileIcon(media.extension);
+        return `<div class="medianeo-preview medianeo-icon"><i class="rex-icon ${icon}"></i></div>`;
+    }// Path: redaxo/src/addons/medianeo/assets/js/medianeo.js
 
 class MediaNeoPicker {
     constructor(input) {
@@ -240,13 +251,17 @@ class MediaNeoPicker {
         this.updateValue();
     }
 
+    getPreviewUrl(filename) {
+        return 'index.php?rex_media_type=medianeo_preview&rex_media_file=' + encodeURIComponent(filename);
+    }
+
     getPreviewHtml(media) {
         if (media.isImage) {
-            return `<img src="${media.preview_url || this.getMediaUrl(media.filename)}" alt="${media.title || media.filename}">`;
+            return `<img src="${this.getPreviewUrl(media.filename)}" alt="${media.title || media.filename}" class="medianeo-preview">`;
         }
         
         const icon = this.getFileIcon(media.extension);
-        return `<i class="rex-icon ${icon}"></i>`;
+        return `<div class="medianeo-preview medianeo-icon"><i class="rex-icon ${icon}"></i></div>`;
     }
 
     getFileIcon(extension) {
