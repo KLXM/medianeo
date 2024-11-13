@@ -14,7 +14,7 @@ class MediaNeoPicker {
         // Create necessary DOM elements
         this.createElements();
         
-        // Initialize sortable
+        // Initialize sortable if available
         if (typeof Sortable !== 'undefined') {
             this.initSortable();
         }
@@ -36,53 +36,89 @@ class MediaNeoPicker {
         this.previewList.className = 'medianeo-preview-list';
         this.container.appendChild(this.previewList);
 
+        // Create add button
+        const addButton = document.createElement('button');
+        addButton.type = 'button';
+        addButton.className = 'btn btn-primary medianeo-add';
+        addButton.innerHTML = '<i class="rex-icon fa-plus"></i> Medium hinzufügen';
+        addButton.addEventListener('click', () => this.openPicker());
+        this.container.appendChild(addButton);
+
         // Insert container after input
         this.input.parentNode.insertBefore(this.container, this.input.nextSibling);
         
-        // Create offcanvas if it doesn't exist
-        if (!document.querySelector('.medianeo-offcanvas')) {
-            this.createOffcanvas();
+        // Create modal if it doesn't exist
+        if (!document.querySelector('#medianeo-modal')) {
+            this.createModal();
         }
     }
 
-    createOffcanvas() {
-        const offcanvas = document.createElement('div');
-        offcanvas.className = 'medianeo-offcanvas offcanvas offcanvas-end';
-        offcanvas.innerHTML = `
-            <div class="offcanvas-header">
-                <nav class="medianeo-breadcrumb"></nav>
-                <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
-            </div>
-            <div class="offcanvas-body">
-                <div class="row">
-                    <div class="col-md-4">
-                        <div class="medianeo-categories"></div>
+    createModal() {
+        const modal = document.createElement('div');
+        modal.id = 'medianeo-modal';
+        modal.className = 'modal fade';
+        modal.setAttribute('tabindex', '-1');
+        modal.setAttribute('role', 'dialog');
+        
+        modal.innerHTML = `
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        <h4 class="modal-title">Medien auswählen</h4>
+                        <nav class="medianeo-breadcrumb"></nav>
                     </div>
-                    <div class="col-md-8">
-                        <div class="medianeo-search mb-3">
-                            <input type="text" class="form-control" placeholder="Suchen...">
+                    <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="medianeo-categories panel panel-default">
+                                    <div class="panel-heading">Kategorien</div>
+                                    <div class="panel-body"></div>
+                                </div>
+                            </div>
+                            <div class="col-md-8">
+                                <div class="form-group">
+                                    <input type="text" class="form-control medianeo-search" placeholder="Suchen...">
+                                </div>
+                                <div class="medianeo-files"></div>
+                            </div>
                         </div>
-                        <div class="medianeo-files"></div>
                     </div>
-                </div>
-            </div>
-            <div class="offcanvas-footer">
-                <div class="btn-toolbar justify-content-end">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="offcanvas">Abbrechen</button>
-                    <button type="button" class="btn btn-primary medianeo-apply">Übernehmen</button>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-default" data-dismiss="modal">Abbrechen</button>
+                        <button type="button" class="btn btn-primary medianeo-apply">Übernehmen</button>
+                    </div>
                 </div>
             </div>
         `;
-        document.body.appendChild(offcanvas);
         
-        // Initialize Bootstrap Offcanvas
-        this.offcanvas = new bootstrap.Offcanvas(offcanvas);
+        document.body.appendChild(modal);
         
         // Store references to important elements
-        this.filesContainer = offcanvas.querySelector('.medianeo-files');
-        this.categoriesContainer = offcanvas.querySelector('.medianeo-categories');
-        this.searchInput = offcanvas.querySelector('.medianeo-search input');
-        this.breadcrumbContainer = offcanvas.querySelector('.medianeo-breadcrumb');
+        this.modal = $(modal);
+        this.filesContainer = modal.querySelector('.medianeo-files');
+        this.categoriesContainer = modal.querySelector('.panel-body');
+        this.searchInput = modal.querySelector('.medianeo-search');
+        this.breadcrumbContainer = modal.querySelector('.medianeo-breadcrumb');
+
+        // Bind modal events
+        this.modal.on('shown.bs.modal', () => {
+            this.loadCategory(0);
+        });
+
+        this.modal.on('hidden.bs.modal', () => {
+            this.selectedMedia.clear();
+            this.filesContainer.innerHTML = '';
+            this.categoriesContainer.innerHTML = '';
+            this.breadcrumbContainer.innerHTML = '';
+        });
+
+        modal.querySelector('.medianeo-apply').addEventListener('click', () => {
+            this.applySelection();
+            this.modal.modal('hide');
+        });
     }
 
     initSortable() {
@@ -104,48 +140,17 @@ class MediaNeoPicker {
     bindEvents() {
         // Bind search input
         if (this.searchInput) {
-            this.searchInput.addEventListener('input', debounce(() => {
+            this.searchInput.addEventListener('input', this.debounce(() => {
                 this.performSearch(this.searchInput.value);
             }, 300));
         }
-
-        // Bind category clicks
-        if (this.categoriesContainer) {
-            this.categoriesContainer.addEventListener('click', (e) => {
-                const category = e.target.closest('.medianeo-category');
-                if (category) {
-                    this.loadCategory(category.dataset.id);
-                }
-            });
-        }
-
-        // Bind apply button
-        const applyBtn = document.querySelector('.medianeo-apply');
-        if (applyBtn) {
-            applyBtn.addEventListener('click', () => {
-                this.applySelection();
-                this.offcanvas.hide();
-            });
-        }
-
-        // Handle custom open event
-        this.input.addEventListener('medianeo:open', () => {
-            this.openPicker();
-        });
-
-        // Create and bind add button
-        const addButton = document.createElement('button');
-        addButton.type = 'button';
-        addButton.className = 'btn btn-primary medianeo-add';
-        addButton.innerHTML = '<i class="rex-icon fa-plus"></i> Medium hinzufügen';
-        addButton.addEventListener('click', () => this.openPicker());
-        this.container.appendChild(addButton);
     }
 
     async loadCategory(categoryId) {
         this.currentCategory = categoryId;
         try {
             const response = await fetch(this.buildUrl('get_category', { category_id: categoryId }));
+            if (!response.ok) throw new Error('Network response was not ok');
             const data = await response.json();
             
             this.renderBreadcrumb(data.breadcrumb);
@@ -169,6 +174,7 @@ class MediaNeoPicker {
                 q: term,
                 category_id: this.currentCategory 
             }));
+            if (!response.ok) throw new Error('Network response was not ok');
             const data = await response.json();
             
             this.renderFiles(data.files);
@@ -182,6 +188,7 @@ class MediaNeoPicker {
     async loadMediaPreview(mediaId) {
         try {
             const response = await fetch(this.buildUrl('get_media', { media_id: mediaId }));
+            if (!response.ok) throw new Error('Network response was not ok');
             const media = await response.json();
             
             this.addPreviewItem(media);
@@ -206,7 +213,6 @@ class MediaNeoPicker {
             </div>
         `;
 
-        // Bind remove button
         previewItem.querySelector('.medianeo-remove').addEventListener('click', () => {
             previewItem.remove();
             this.updateValue();
@@ -247,20 +253,24 @@ class MediaNeoPicker {
     renderBreadcrumb(breadcrumb) {
         if (!breadcrumb || !this.breadcrumbContainer) return;
         
-        this.breadcrumbContainer.innerHTML = breadcrumb.map((item, index) => `
-            <span class="medianeo-breadcrumb-item ${index === breadcrumb.length - 1 ? 'active' : ''}" 
-                  data-id="${item.id}">
-                ${index > 0 ? '<i class="rex-icon fa-angle-right"></i>' : ''}
-                ${item.name}
-            </span>
-        `).join('');
+        this.breadcrumbContainer.innerHTML = `
+            <ol class="breadcrumb">
+                ${breadcrumb.map((item, index) => `
+                    <li class="${index === breadcrumb.length - 1 ? 'active' : ''}">
+                        ${index === breadcrumb.length - 1 ? 
+                            item.name : 
+                            `<a href="#" data-id="${item.id}">${item.name}</a>`
+                        }
+                    </li>
+                `).join('')}
+            </ol>
+        `;
         
         // Bind click events
-        this.breadcrumbContainer.querySelectorAll('.medianeo-breadcrumb-item').forEach(item => {
-            item.addEventListener('click', () => {
-                if (!item.classList.contains('active')) {
-                    this.loadCategory(item.dataset.id);
-                }
+        this.breadcrumbContainer.querySelectorAll('a').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.loadCategory(link.dataset.id);
             });
         });
     }
@@ -268,30 +278,43 @@ class MediaNeoPicker {
     renderCategories(categories) {
         if (!categories || !this.categoriesContainer) return;
         
+        if (categories.length === 0) {
+            this.categoriesContainer.innerHTML = '<div class="alert alert-info">Keine Kategorien vorhanden</div>';
+            return;
+        }
+        
         this.categoriesContainer.innerHTML = `
-            <ul class="medianeo-category-list">
+            <ul class="list-group">
                 ${categories.map(cat => `
-                    <li class="medianeo-category" data-id="${cat.id}">
-                        <i class="rex-icon fa-folder"></i>
+                    <li class="list-group-item medianeo-category" data-id="${cat.id}">
+                        <i class="rex-icon fa-folder-o"></i>
                         ${cat.name}
                     </li>
                 `).join('')}
             </ul>
         `;
+        
+        // Bind category clicks
+        this.categoriesContainer.querySelectorAll('.medianeo-category').forEach(category => {
+            category.addEventListener('click', () => {
+                this.loadCategory(category.dataset.id);
+            });
+        });
     }
 
     renderFiles(files) {
         if (!files || !this.filesContainer) return;
         
         if (files.length === 0) {
-            this.filesContainer.innerHTML = '<div class="medianeo-no-files">Keine Dateien gefunden</div>';
+            this.filesContainer.innerHTML = '<div class="alert alert-info">Keine Dateien in dieser Kategorie</div>';
             return;
         }
         
         this.filesContainer.innerHTML = `
             <div class="medianeo-file-grid">
                 ${files.map(file => `
-                    <div class="medianeo-file" data-id="${file.id}">
+                    <div class="medianeo-file ${this.selectedMedia.has(file.id) ? 'selected' : ''}" 
+                         data-id="${file.id}">
                         ${this.getPreviewHtml(file)}
                         <div class="medianeo-file-info">
                             <span class="medianeo-file-name">${file.filename}</span>
@@ -345,11 +368,8 @@ class MediaNeoPicker {
         // Reset selection
         this.selectedMedia.clear();
         
-        // Load root category
-        this.loadCategory(0);
-        
-        // Show offcanvas
-        this.offcanvas.show();
+        // Show modal
+        this.modal.modal('show');
     }
 
     buildUrl(action, params = {}) {
@@ -365,7 +385,7 @@ class MediaNeoPicker {
     }
 
     getMediaUrl(filename) {
-        return `index.php?rex_media_type=rex_mediapool_detail&rex_media_file=${filename}`;
+        return `index.php?rex_media_type=medianeo_preview&rex_media_file=${filename}`;
     }
 
     showError(message) {
@@ -375,17 +395,22 @@ class MediaNeoPicker {
             alert(message);
         }
     }
+
+    debounce(func, wait) {
+        let timeout;
+        return function(...args) {
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(this, args), wait);
+        };
+    }
 }
 
-// Helper function for debouncing
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
-        };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
+// Initialize on document ready
+$(document).on('rex:ready', function() {
+    document.querySelectorAll('input.medianeo').forEach(input => {
+        if (!input.dataset.medianeoInitialized) {
+            new MediaNeoPicker(input);
+            input.dataset.medianeoInitialized = 'true';
+        }
+    });
+});
