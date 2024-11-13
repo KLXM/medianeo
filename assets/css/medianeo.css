@@ -1,51 +1,49 @@
 /* Path: assets/css/medianeo.css */
 
-/* Hide original input */
-.medianeo {
-    display: none;
-}
-
-/* Preview Container */
-.medianeo-preview {
+/* Container Styles */
+.medianeo-container {
     margin: 15px 0;
     padding: 15px;
-    border: 2px dashed #e9ecef;
+    border: 1px solid #e4e4e4;
     border-radius: 4px;
+    background: #f9f9f9;
 }
 
 /* Preview List */
 .medianeo-preview-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
     margin-bottom: 15px;
     min-height: 60px;
+    padding: 15px;
+    background: #fff;
+    border: 2px dashed #e4e4e4;
+    border-radius: 4px;
 }
 
 /* Preview Items */
 .medianeo-preview-item {
     position: relative;
-    width: 150px;
     background: #fff;
     border: 1px solid #dee2e6;
     border-radius: 4px;
     overflow: hidden;
-    cursor: move;
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
 }
 
 .medianeo-preview-item img {
     width: 100%;
-    height: 100px;
+    height: 120px;
     object-fit: cover;
+    display: block;
 }
 
-.medianeo-preview-item i.fa {
+.medianeo-preview-item .rex-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 100%;
-    height: 100px;
+    height: 120px;
     background: #f8f9fa;
     font-size: 2em;
     color: #adb5bd;
@@ -65,46 +63,38 @@
     text-overflow: ellipsis;
 }
 
-.medianeo-remove {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    width: 24px;
-    height: 24px;
-    border: none;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.9);
-    color: #dc3545;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    font-size: 12px;
+/* Off-Canvas Styles */
+.medianeo-offcanvas {
+    width: 800px !important;
+    max-width: 100%;
 }
 
-.medianeo-remove:hover {
-    background: #dc3545;
-    color: #fff;
-}
-
-/* Sidebar Styles */
-.medianeo-sidebar {
-    width: 600px !important;
-}
-
-.medianeo-sidebar .offcanvas-body {
-    display: flex;
-    gap: 20px;
-    padding: 0;
-}
-
-/* Categories */
-.medianeo-categories {
-    width: 200px;
-    border-right: 1px solid #dee2e6;
-    padding: 15px;
+.medianeo-offcanvas .offcanvas-header {
     background: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+    padding: 1rem;
+}
+
+.medianeo-offcanvas .offcanvas-body {
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    height: calc(100% - 130px); /* Header + Footer height */
+}
+
+.medianeo-offcanvas .offcanvas-footer {
+    padding: 1rem;
+    background: #f8f9fa;
+    border-top: 1px solid #dee2e6;
+}
+
+/* Categories Panel */
+.medianeo-categories {
+    width: 100%;
+    border-right: 1px solid #dee2e6;
+    background: #f8f9fa;
+    padding: 1rem;
+    overflow-y: auto;
 }
 
 .medianeo-category-list {
@@ -130,11 +120,15 @@
     color: #fff;
 }
 
+.medianeo-category .rex-icon {
+    margin-right: 8px;
+}
+
 /* Files Grid */
 .medianeo-files {
-    flex: 1;
-    padding: 15px;
+    padding: 1rem;
     overflow-y: auto;
+    flex-grow: 1;
 }
 
 .medianeo-file-grid {
@@ -164,16 +158,16 @@
 
 .medianeo-file img {
     width: 100%;
-    height: 100px;
+    height: 120px;
     object-fit: cover;
+    display: block;
 }
 
-.medianeo-file i.fa {
+.medianeo-file .rex-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 100%;
-    height: 100px;
+    height: 120px;
     background: #f8f9fa;
     font-size: 2em;
     color: #adb5bd;
@@ -181,6 +175,7 @@
 
 .medianeo-file-info {
     padding: 8px;
+    background: #fff;
     border-top: 1px solid #dee2e6;
 }
 
@@ -201,18 +196,104 @@
     text-overflow: ellipsis;
 }
 
-/* Footer */
-.medianeo-sidebar .offcanvas-footer {
-    padding: 15px;
-    border-top: 1px solid #dee2e6;
-    text-align: right;
+/* Breadcrumb */
+.medianeo-breadcrumb {
+    flex-grow: 1;
+    font-size: 1rem;
 }
 
-/* Sortable Drag States */
-.sortable-ghost {
+.medianeo-breadcrumb-item {
+    cursor: pointer;
+}
+
+.medianeo-breadcrumb-item:not(.active):hover {
+    text-decoration: underline;
+}
+
+.medianeo-breadcrumb-item .rex-icon {
+    margin: 0 8px;
+    font-size: 0.875rem;
+    color: #6c757d;
+}
+
+/* Search */
+.medianeo-search {
+    padding: 1rem 1rem 0.5rem;
+}
+
+.medianeo-search .form-control {
+    border-radius: 4px;
+}
+
+/* Buttons */
+.medianeo-add {
+    width: 100%;
+}
+
+.medianeo-remove {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.9);
+    color: #dc3545;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 12px;
+}
+
+.medianeo-remove:hover {
+    background: #dc3545;
+    color: #fff;
+}
+
+/* Layout */
+.medianeo-grid {
+    display: grid;
+    grid-template-columns: 250px 1fr;
+    height: 100%;
+}
+
+.medianeo-content {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+/* Empty States */
+.medianeo-no-files {
+    text-align: center;
+    padding: 2rem;
+    color: #6c757d;
+}
+
+/* Drag & Drop States */
+.medianeo-ghost {
     opacity: 0.5;
 }
 
-.sortable-chosen {
+.medianeo-chosen {
     box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+/* Hide original input */
+input.medianeo {
+    display: none;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .medianeo-offcanvas {
+        width: 100% !important;
+    }
+    
+    .medianeo-grid {
+        grid-template-columns: 1fr;
+    }
 }
