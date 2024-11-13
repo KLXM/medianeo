@@ -1,0 +1,218 @@
+/* Path: assets/css/medianeo.css */
+
+/* Hide original input */
+.medianeo {
+    display: none;
+}
+
+/* Preview Container */
+.medianeo-preview {
+    margin: 15px 0;
+    padding: 15px;
+    border: 2px dashed #e9ecef;
+    border-radius: 4px;
+}
+
+/* Preview List */
+.medianeo-preview-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 15px;
+    min-height: 60px;
+}
+
+/* Preview Items */
+.medianeo-preview-item {
+    position: relative;
+    width: 150px;
+    background: #fff;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: move;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.medianeo-preview-item img {
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+}
+
+.medianeo-preview-item i.fa {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100px;
+    background: #f8f9fa;
+    font-size: 2em;
+    color: #adb5bd;
+}
+
+.medianeo-preview-info {
+    padding: 8px;
+    background: #fff;
+    border-top: 1px solid #dee2e6;
+}
+
+.medianeo-preview-title {
+    display: block;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.medianeo-remove {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.9);
+    color: #dc3545;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    font-size: 12px;
+}
+
+.medianeo-remove:hover {
+    background: #dc3545;
+    color: #fff;
+}
+
+/* Sidebar Styles */
+.medianeo-sidebar {
+    width: 600px !important;
+}
+
+.medianeo-sidebar .offcanvas-body {
+    display: flex;
+    gap: 20px;
+    padding: 0;
+}
+
+/* Categories */
+.medianeo-categories {
+    width: 200px;
+    border-right: 1px solid #dee2e6;
+    padding: 15px;
+    background: #f8f9fa;
+}
+
+.medianeo-category-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.medianeo-category {
+    padding: 8px 12px;
+    margin-bottom: 5px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.medianeo-category:hover {
+    background: #e9ecef;
+}
+
+.medianeo-category.active {
+    background: #0d6efd;
+    color: #fff;
+}
+
+/* Files Grid */
+.medianeo-files {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+}
+
+.medianeo-file-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 15px;
+}
+
+.medianeo-file {
+    border: 2px solid transparent;
+    border-radius: 4px;
+    overflow: hidden;
+    cursor: pointer;
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    transition: all 0.2s;
+}
+
+.medianeo-file:hover {
+    border-color: #0d6efd;
+}
+
+.medianeo-file.selected {
+    border-color: #0d6efd;
+    background: #e7f1ff;
+}
+
+.medianeo-file img {
+    width: 100%;
+    height: 100px;
+    object-fit: cover;
+}
+
+.medianeo-file i.fa {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100px;
+    background: #f8f9fa;
+    font-size: 2em;
+    color: #adb5bd;
+}
+
+.medianeo-file-info {
+    padding: 8px;
+    border-top: 1px solid #dee2e6;
+}
+
+.medianeo-file-name {
+    display: block;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.medianeo-file-title {
+    display: block;
+    font-size: 0.75rem;
+    color: #6c757d;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Footer */
+.medianeo-sidebar .offcanvas-footer {
+    padding: 15px;
+    border-top: 1px solid #dee2e6;
+    text-align: right;
+}
+
+/* Sortable Drag States */
+.sortable-ghost {
+    opacity: 0.5;
+}
+
+.sortable-chosen {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
