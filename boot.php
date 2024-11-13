@@ -17,6 +17,4 @@ if (rex::isBackend() && rex::getUser()) {
         'csrf_token' => rex_csrf_token::factory('medianeo')->getValue()
     ]);
     
-    // Register media manager type
-    rex_medianeo_handler::registerMediaManagerType();
 }
