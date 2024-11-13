@@ -1,15 +1,4 @@
-getPreviewUrl(filename) {
-        return 'index.php?rex_media_type=rex_media_small&rex_media_file=' + encodeURIComponent(filename);
-    }
-
-    getPreviewHtml(media) {
-        if (media.isImage) {
-            return `<img src="${this.getPreviewUrl(media.filename)}" alt="${media.title || media.filename}" class="medianeo-preview">`;
-        }
-        
-        const icon = this.getFileIcon(media.extension);
-        return `<div class="medianeo-preview medianeo-icon"><i class="rex-icon ${icon}"></i></div>`;
-    }// Path: redaxo/src/addons/medianeo/assets/js/medianeo.js
+// Path: redaxo/src/addons/medianeo/assets/js/medianeo.js
 
 class MediaNeoPicker {
     constructor(input) {
@@ -25,16 +14,13 @@ class MediaNeoPicker {
         // Create necessary DOM elements
         this.createElements();
         
-        // Initialize sortable if available
+        // Initialize sortable
         if (typeof Sortable !== 'undefined') {
             this.initSortable();
         }
         
         // Load initial values
         this.loadInitialValues();
-        
-        // Bind events
-        this.bindEvents();
     }
 
     createElements() {
@@ -50,7 +36,7 @@ class MediaNeoPicker {
         // Create add button
         const addButton = document.createElement('button');
         addButton.type = 'button';
-        addButton.className = 'btn btn-primary medianeo-add';
+        addButton.className = 'btn btn-default medianeo-add';
         addButton.innerHTML = '<i class="rex-icon fa-plus"></i> Medium hinzufügen';
         addButton.addEventListener('click', () => this.openPicker());
         this.container.appendChild(addButton);
@@ -121,15 +107,19 @@ class MediaNeoPicker {
 
         this.modal.on('hidden.bs.modal', () => {
             this.selectedMedia.clear();
-            this.filesContainer.innerHTML = '';
-            this.categoriesContainer.innerHTML = '';
-            this.breadcrumbContainer.innerHTML = '';
         });
 
         modal.querySelector('.medianeo-apply').addEventListener('click', () => {
             this.applySelection();
             this.modal.modal('hide');
         });
+
+        // Bind search input
+        if (this.searchInput) {
+            this.searchInput.addEventListener('input', this.debounce(() => {
+                this.performSearch(this.searchInput.value);
+            }, 300));
+        }
     }
 
     initSortable() {
@@ -148,25 +138,13 @@ class MediaNeoPicker {
         }
     }
 
-    bindEvents() {
-        // Bind search input
-        if (this.searchInput) {
-            this.searchInput.addEventListener('input', this.debounce(() => {
-                this.performSearch(this.searchInput.value);
-            }, 300));
-        }
-    }
-
     async loadCategory(categoryId) {
         this.currentCategory = categoryId;
         try {
             const url = this.buildUrl('get_category', { category_id: categoryId });
-            console.log('Loading category from URL:', url);
-
             const response = await fetch(url);
             const contentType = response.headers.get('content-type');
             
-            // Check if response is JSON
             if (!contentType || !contentType.includes('application/json')) {
                 const text = await response.text();
                 console.error('Invalid response type:', contentType, 'Response:', text);
@@ -174,7 +152,6 @@ class MediaNeoPicker {
             }
             
             const result = await response.json();
-            console.log('Server response:', result);
             
             if (!result.success) {
                 throw new Error(result.error || 'Unknown error occurred');
@@ -203,10 +180,14 @@ class MediaNeoPicker {
                 q: term,
                 category_id: this.currentCategory 
             }));
-            if (!response.ok) throw new Error('Network response was not ok');
-            const data = await response.json();
             
-            this.renderFiles(data.files);
+            const result = await response.json();
+            
+            if (!result.success) {
+                throw new Error(result.error || 'Unknown error occurred');
+            }
+            
+            this.renderFiles(result.data.files);
             
         } catch (error) {
             console.error('Error searching:', error);
@@ -217,9 +198,13 @@ class MediaNeoPicker {
     async loadMediaPreview(mediaId) {
         try {
             const response = await fetch(this.buildUrl('get_media', { media_id: mediaId }));
-            if (!response.ok) throw new Error('Network response was not ok');
-            const media = await response.json();
+            const result = await response.json();
             
+            if (!result.success) {
+                throw new Error(result.error || 'Unknown error occurred');
+            }
+            
+            const media = result.data;
             this.addPreviewItem(media);
             
         } catch (error) {
@@ -236,7 +221,7 @@ class MediaNeoPicker {
             ${this.getPreviewHtml(media)}
             <div class="medianeo-preview-info">
                 <span class="medianeo-preview-title">${media.title || media.filename}</span>
-                <button type="button" class="medianeo-remove">
+                <button type="button" class="medianeo-remove btn btn-xs btn-danger">
                     <i class="rex-icon fa-times"></i>
                 </button>
             </div>
@@ -251,13 +236,11 @@ class MediaNeoPicker {
         this.updateValue();
     }
 
-    getPreviewUrl(filename) {
-        return 'index.php?rex_media_type=medianeo_preview&rex_media_file=' + encodeURIComponent(filename);
-    }
-
     getPreviewHtml(media) {
         if (media.isImage) {
-            return `<img src="${this.getPreviewUrl(media.filename)}" alt="${media.title || media.filename}" class="medianeo-preview">`;
+            return `<img src="index.php?rex_media_type=rex_media_small&rex_media_file=${encodeURIComponent(media.filename)}" 
+                        alt="${media.title || media.filename}" 
+                        class="medianeo-preview">`;
         }
         
         const icon = this.getFileIcon(media.extension);
@@ -303,7 +286,7 @@ class MediaNeoPicker {
         this.breadcrumbContainer.querySelectorAll('a').forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
-                this.loadCategory(link.dataset.id);
+                this.loadCategory(parseInt(link.dataset.id));
             });
         });
     }
@@ -317,20 +300,21 @@ class MediaNeoPicker {
         }
         
         this.categoriesContainer.innerHTML = `
-            <ul class="list-group">
+            <div class="list-group">
                 ${categories.map(cat => `
-                    <li class="list-group-item medianeo-category" data-id="${cat.id}">
+                    <a href="#" class="list-group-item medianeo-category" data-id="${cat.id}">
                         <i class="rex-icon fa-folder-o"></i>
                         ${cat.name}
-                    </li>
+                    </a>
                 `).join('')}
-            </ul>
+            </div>
         `;
         
         // Bind category clicks
         this.categoriesContainer.querySelectorAll('.medianeo-category').forEach(category => {
-            category.addEventListener('click', () => {
-                this.loadCategory(category.dataset.id);
+            category.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.loadCategory(parseInt(category.dataset.id));
             });
         });
     }
@@ -362,7 +346,7 @@ class MediaNeoPicker {
         this.filesContainer.querySelectorAll('.medianeo-file').forEach(file => {
             file.addEventListener('click', () => {
                 file.classList.toggle('selected');
-                this.toggleFileSelection(file.dataset.id);
+                this.toggleFileSelection(parseInt(file.dataset.id));
             });
         });
     }
@@ -406,26 +390,20 @@ class MediaNeoPicker {
     }
 
     buildUrl(action, params = {}) {
-        // Base URL from REDAXO
-        let baseUrl = window.location.href.split('?')[0] + '?';
-
-        // Add API parameters
-        const parameters = {
-            page: 'structure',  // Beliebige valide REDAXO-Page
-            'rex-api-call': 'medianeo', // In Quotes wegen des Bindestrichs
+        // Use simple index.php for backend
+        const urlParams = {
+            'rex-api-call': 'medianeo',
             func: action,
             _csrf_token: this.config.csrf_token,
             ...params
         };
-
-        // Build query string
-        return baseUrl + Object.entries(parameters)
-            .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+        
+        // Convert to query string
+        const queryString = Object.entries(urlParams)
+            .map(([key, value]) => encodeURIComponent(key) + '=' + encodeURIComponent(value))
             .join('&');
-    }
-
-    getMediaUrl(filename) {
-        return `index.php?rex_media_type=medianeo_preview&rex_media_file=${filename}`;
+            
+        return 'index.php?' + queryString;
     }
 
     showError(message) {
