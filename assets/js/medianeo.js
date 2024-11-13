@@ -382,14 +382,16 @@ class MediaNeoPicker {
     }
 
     buildUrl(action, params = {}) {
-        // Base URL from REDAXO config
-        let baseUrl = window.location.href.split('?')[0] + '?page=medianeo/ajax';
+        // Base URL from REDAXO
+        let baseUrl = window.location.href.split('?')[0] + '?';
 
-        // Add all parameters
+        // Add API parameters
         const parameters = {
-            ...params,
+            page: 'structure',  // Kann eine beliebige gültige REDAXO-Page sein
+            rex-api-call: 'medianeo',
             func: action,
-            _csrf_token: this.config.csrf_token
+            _csrf_token: this.config.csrf_token,
+            ...params
         };
 
         // Build query string
@@ -397,7 +399,7 @@ class MediaNeoPicker {
             .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(parameters[key]))
             .join('&');
 
-        return baseUrl + '&' + queryString;
+        return baseUrl + queryString;
     }
 
     getMediaUrl(filename) {
