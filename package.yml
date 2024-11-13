@@ -13,8 +13,14 @@ requires:
 
 page:
     title: 'MediaNeo'
-    perm: mediapool[]
+    perm: admin[]
+    hidden: true
     subpages:
         ajax:
             title: 'Ajax'
             hidden: true
+            pjax: false
+
+default_config:
+    preview_width: 400
+    preview_height: 400
