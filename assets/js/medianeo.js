@@ -158,8 +158,15 @@ class MediaNeoPicker {
                 console.error('Server response:', text);
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
-            const data = await response.json();
             
+            const result = await response.json();
+            
+            // API result structure check
+            if (!result.success) {
+                throw new Error(result.error);
+            }
+            
+            const data = result.data;
             console.log('Received data:', data);
             
             this.renderBreadcrumb(data.breadcrumb);
@@ -168,7 +175,7 @@ class MediaNeoPicker {
             
         } catch (error) {
             console.error('Error loading category:', error);
-            this.showError('Fehler beim Laden der Kategorie');
+            this.showError(error.message || 'Fehler beim Laden der Kategorie');
         }
     }
 
