@@ -3,10 +3,10 @@
 
 if (rex::isBackend() && rex::getUser()) {
     // Add Bootstrap CSS if not already included
-    if (!rex_view::hasJsProperty('bootstrap')) {
+
         rex_view::addCssFile('https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css');
         rex_view::addJsFile('https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js');
-    }
+
     
     // Add Sortable.js
     rex_view::addJsFile('https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js');
