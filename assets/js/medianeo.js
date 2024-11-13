@@ -153,21 +153,23 @@ class MediaNeoPicker {
             console.log('Loading category from URL:', url);
 
             const response = await fetch(url);
-            if (!response.ok) {
+            const contentType = response.headers.get('content-type');
+            
+            // Check if response is JSON
+            if (!contentType || !contentType.includes('application/json')) {
                 const text = await response.text();
-                console.error('Server response:', text);
-                throw new Error(`HTTP error! status: ${response.status}`);
+                console.error('Invalid response type:', contentType, 'Response:', text);
+                throw new Error('Server returned invalid content type');
             }
             
             const result = await response.json();
+            console.log('Server response:', result);
             
-            // API result structure check
             if (!result.success) {
-                throw new Error(result.error);
+                throw new Error(result.error || 'Unknown error occurred');
             }
             
             const data = result.data;
-            console.log('Received data:', data);
             
             this.renderBreadcrumb(data.breadcrumb);
             this.renderCategories(data.categories);
@@ -394,19 +396,17 @@ class MediaNeoPicker {
 
         // Add API parameters
         const parameters = {
-            page: 'structure',  // Kann eine beliebige gültige REDAXO-Page sein
-            rex-api-call: 'medianeo',
+            page: 'structure',  // Beliebige valide REDAXO-Page
+            'rex-api-call': 'medianeo', // In Quotes wegen des Bindestrichs
             func: action,
             _csrf_token: this.config.csrf_token,
             ...params
         };
 
         // Build query string
-        const queryString = Object.keys(parameters)
-            .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(parameters[key]))
+        return baseUrl + Object.entries(parameters)
+            .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
             .join('&');
-
-        return baseUrl + queryString;
     }
 
     getMediaUrl(filename) {
