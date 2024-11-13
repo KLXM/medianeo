@@ -1,20 +1,20 @@
-# Path: redaxo/src/addons/medianeo/package.yml
 package: medianeo
 version: '1.0.0'
 author: Your Name
-supportpage: https://github.com/yourusername/medianeo
+supportpage: github.com/yourusername/medianeo
 
 requires:
     redaxo: '^5.13'
     php:
         version: '>=7.4'
     packages:
+        media_manager: '^2.11'
         mediapool: '^2.11'
 
 page:
     title: 'MediaNeo'
-    pjax: true
-    icon: rex-icon fa-image
+    perm: mediapool[]
     subpages:
-        settings:
-            title: 'translate:settings'
+        ajax:
+            title: 'Ajax'
+            hidden: true
