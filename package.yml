@@ -1,8 +1,20 @@
-package: addon_key
-version: '0.0.0'
-author: 'Friends Of REDAXO'
-supportpage: https://github.com/FriendsOfREDAXO/addon_key
+# Path: redaxo/src/addons/medianeo/package.yml
+package: medianeo
+version: '1.0.0'
+author: Your Name
+supportpage: https://github.com/yourusername/medianeo
+
 requires:
-    redaxo: '^5.15.1'
+    redaxo: '^5.13'
     php:
-        version: '>=8.1, <9'
+        version: '>=7.4'
+    packages:
+        mediapool: '^2.11'
+
+page:
+    title: 'MediaNeo'
+    pjax: true
+    icon: rex-icon fa-image
+    subpages:
+        settings:
+            title: 'translate:settings'
