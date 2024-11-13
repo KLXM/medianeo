@@ -23,36 +23,38 @@
 }
 
 /* Preview Items */
-.medianeo-preview-item {
-    position: relative;
-    background: #fff;
-    border: 1px solid #dee2e6;
-    border-radius: 4px;
-    overflow: hidden;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-}
-
-.medianeo-preview-item img {
+.medianeo-preview {
     width: 100%;
-    height: 120px;
-    object-fit: cover;
-    display: block;
+    height: 100px;
+    object-fit: contain;
+    background: #f5f5f5;
 }
 
-.medianeo-preview-item .rex-icon {
+.medianeo-preview.medianeo-icon {
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 120px;
-    background: #f8f9fa;
+}
+
+.medianeo-preview.medianeo-icon i {
     font-size: 2em;
-    color: #adb5bd;
+    color: #666;
+}
+
+.medianeo-preview-item {
+    position: relative;
+    width: 150px;
+    background: #fff;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    overflow: hidden;
 }
 
 .medianeo-preview-info {
     padding: 8px;
+    font-size: 12px;
+    border-top: 1px solid #ddd;
     background: #fff;
-    border-top: 1px solid #dee2e6;
 }
 
 .medianeo-preview-title {
