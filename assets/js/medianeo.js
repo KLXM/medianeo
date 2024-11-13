@@ -57,6 +57,9 @@ class MediaNeoPicker {
         modal.setAttribute('tabindex', '-1');
         modal.setAttribute('role', 'dialog');
         
+        // Check if filepond is available
+        const hasFilepond = this.config.has_filepond;
+        
         modal.innerHTML = `
             <div class="modal-dialog modal-lg" role="document">
                 <div class="modal-content">
@@ -79,6 +82,13 @@ class MediaNeoPicker {
                                 <div class="form-group">
                                     <input type="text" class="form-control medianeo-search" placeholder="Suchen...">
                                 </div>
+                                ${hasFilepond ? `
+                                <div class="medianeo-upload panel panel-default">
+                                    <div class="panel-heading">Upload</div>
+                                    <div class="panel-body">
+                                        <input type="file" class="medianeo-filepond" multiple>
+                                    </div>
+                                </div>` : ''}
                                 <div class="medianeo-files"></div>
                             </div>
                         </div>
@@ -100,6 +110,11 @@ class MediaNeoPicker {
         this.searchInput = modal.querySelector('.medianeo-search');
         this.breadcrumbContainer = modal.querySelector('.medianeo-breadcrumb');
 
+        // Initialize FilePond if available
+        if (hasFilepond) {
+            this.initializeFilepond();
+        }
+
         // Bind modal events
         this.modal.on('shown.bs.modal', () => {
             this.loadCategory(0);
@@ -120,6 +135,39 @@ class MediaNeoPicker {
                 this.performSearch(this.searchInput.value);
             }, 300));
         }
+    }
+
+    initializeFilepond() {
+        const inputElement = this.modal.find('.medianeo-filepond')[0];
+        if (!inputElement) return;
+
+        const pond = FilePond.create(inputElement, {
+            allowMultiple: true,
+            server: {
+                url: this.config.filepond_api_url,
+                process: {
+                    method: 'POST',
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    },
+                    withCredentials: false,
+                    ondata: (formData) => {
+                        formData.append('func', 'upload');
+                        formData.append('category_id', this.currentCategory);
+                        formData.append('_csrf_token', this.config.csrf_token);
+                        return formData;
+                    }
+                }
+            },
+            onprocessfile: (error, file) => {
+                if (!error) {
+                    // Reload the current category to show the new file
+                    this.loadCategory(this.currentCategory);
+                }
+            }
+        });
+
+        this.filepondInstance = pond;
     }
 
     initSortable() {
