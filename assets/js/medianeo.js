@@ -149,9 +149,18 @@ class MediaNeoPicker {
     async loadCategory(categoryId) {
         this.currentCategory = categoryId;
         try {
-            const response = await fetch(this.buildUrl('get_category', { category_id: categoryId }));
-            if (!response.ok) throw new Error('Network response was not ok');
+            const url = this.buildUrl('get_category', { category_id: categoryId });
+            console.log('Loading category from URL:', url);
+
+            const response = await fetch(url);
+            if (!response.ok) {
+                const text = await response.text();
+                console.error('Server response:', text);
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
             const data = await response.json();
+            
+            console.log('Received data:', data);
             
             this.renderBreadcrumb(data.breadcrumb);
             this.renderCategories(data.categories);
