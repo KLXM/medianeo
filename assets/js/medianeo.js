@@ -373,28 +373,22 @@ class MediaNeoPicker {
     }
 
     buildUrl(action, params = {}) {
-        if (!this.config.ajax_url) {
-            console.error('MediaNeo: ajax_url is not configured');
-            return '#';
-        }
-        
-        // Start with the base URL
-        let url = this.config.ajax_url;
-        
-        // Add parameters
-        const allParams = {
+        // Base URL from REDAXO config
+        let baseUrl = window.location.href.split('?')[0] + '?page=medianeo/ajax';
+
+        // Add all parameters
+        const parameters = {
             ...params,
             func: action,
             _csrf_token: this.config.csrf_token
         };
-        
-        // Convert parameters to URL string
-        const paramString = Object.entries(allParams)
-            .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+
+        // Build query string
+        const queryString = Object.keys(parameters)
+            .map(key => encodeURIComponent(key) + '=' + encodeURIComponent(parameters[key]))
             .join('&');
-            
-        // Add parameters to URL
-        return url + (url.includes('?') ? '&' : '?') + paramString;
+
+        return baseUrl + '&' + queryString;
     }
 
     getMediaUrl(filename) {
