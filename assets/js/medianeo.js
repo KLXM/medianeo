@@ -373,15 +373,17 @@ class MediaNeoPicker {
     }
 
     buildUrl(action, params = {}) {
-        const url = new URL(this.config.ajax_url, window.location.origin);
-        url.searchParams.set('func', action);
-        url.searchParams.set('_csrf_token', this.config.csrf_token);
+        // rex_url kann nicht direkt verwendet werden, daher bauen wir die URL manuell
+        let url = 'index.php?page=medianeo/ajax';
+        url += '&func=' + action;
+        url += '&_csrf_token=' + this.config.csrf_token;
         
+        // Füge zusätzliche Parameter hinzu
         Object.entries(params).forEach(([key, value]) => {
-            url.searchParams.set(key, value);
+            url += '&' + encodeURIComponent(key) + '=' + encodeURIComponent(value);
         });
         
-        return url.toString();
+        return url;
     }
 
     getMediaUrl(filename) {
