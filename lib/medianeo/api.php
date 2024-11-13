@@ -4,28 +4,19 @@
 class rex_api_medianeo extends rex_api_function
 {
     protected $published = true;
-    protected $logger;
-    
-    function execute()
+
+    public function execute()
     {
-        // Set JSON content type
-        header('Content-Type: application/json');
-        
-        $this->logger = rex_logger::factory();
-        
         try {
-            // Check permissions
-            if (!rex::getUser()->hasPerm('mediapool[]')) {
-                throw new rex_api_exception('No permission for mediapool');
+            // Check if user is logged in
+            if (!rex::getUser()) {
+                throw new rex_api_exception('Backend user must be logged in');
             }
-            
-            $function = rex_request('func', 'string');
+
+            $func = rex_request('func', 'string');
             $handler = new rex_medianeo_handler();
             
-            // Log request
-            $this->logger->info('MediaNeo API call: ' . $function);
-            
-            switch($function) {
+            switch($func) {
                 case 'get_category':
                     $result = $handler->getCategoryData();
                     break;
@@ -39,24 +30,25 @@ class rex_api_medianeo extends rex_api_function
                     break;
                     
                 default:
-                    throw new rex_api_exception('Unknown function: ' . $function);
+                    throw new rex_api_exception('Unknown function: ' . $func);
             }
             
-            // Return JSON response
-            exit(json_encode([
+            // Clean output buffers and send JSON response
+            rex_response::cleanOutputBuffers();
+            rex_response::sendJson([
                 'success' => true,
                 'data' => $result
-            ]));
+            ]);
+            exit;
             
         } catch (Exception $e) {
-            // Log error
-            $this->logger->error('MediaNeo API error: ' . $e->getMessage());
-            
-            // Return error response
-            exit(json_encode([
+            rex_response::cleanOutputBuffers();
+            rex_response::setStatus(rex_response::HTTP_INTERNAL_ERROR);
+            rex_response::sendJson([
                 'success' => false,
                 'error' => $e->getMessage()
-            ]));
+            ]);
+            exit;
         }
     }
 }
