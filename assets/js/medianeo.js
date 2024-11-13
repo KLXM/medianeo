@@ -599,6 +599,25 @@ class MediaNeoPicker {
     }
 }
 
+// Register FilePond plugins
+if (typeof FilePond !== 'undefined') {
+    // Register image preview plugin
+    if (typeof FilePondPluginImagePreview !== 'undefined') {
+        FilePond.registerPlugin(FilePondPluginImagePreview);
+    }
+    
+    // Set default FilePond options
+    FilePond.setOptions({
+        allowMultiple: true,
+        labelIdle: 'Dateien hierher ziehen oder <span class="filepond--label-action">durchsuchen</span>',
+        labelFileProcessing: 'Wird hochgeladen',
+        labelFileProcessingComplete: 'Upload abgeschlossen',
+        labelTapToCancel: 'Klicken zum Abbrechen',
+        labelTapToRetry: 'Klicken zum Wiederholen',
+        labelTapToUndo: 'Klicken zum Rückgängig machen'
+    });
+}
+
 // Initialize on document ready
 $(document).on('rex:ready', function() {
     document.querySelectorAll('input.medianeo').forEach(input => {
