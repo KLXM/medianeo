@@ -373,17 +373,28 @@ class MediaNeoPicker {
     }
 
     buildUrl(action, params = {}) {
-        // rex_url kann nicht direkt verwendet werden, daher bauen wir die URL manuell
-        let url = 'index.php?page=medianeo/ajax';
-        url += '&func=' + action;
-        url += '&_csrf_token=' + this.config.csrf_token;
+        if (!this.config.ajax_url) {
+            console.error('MediaNeo: ajax_url is not configured');
+            return '#';
+        }
         
-        // Füge zusätzliche Parameter hinzu
-        Object.entries(params).forEach(([key, value]) => {
-            url += '&' + encodeURIComponent(key) + '=' + encodeURIComponent(value);
-        });
+        // Start with the base URL
+        let url = this.config.ajax_url;
         
-        return url;
+        // Add parameters
+        const allParams = {
+            ...params,
+            func: action,
+            _csrf_token: this.config.csrf_token
+        };
+        
+        // Convert parameters to URL string
+        const paramString = Object.entries(allParams)
+            .map(([key, value]) => `${encodeURIComponent(key)}=${encodeURIComponent(value)}`)
+            .join('&');
+            
+        // Add parameters to URL
+        return url + (url.includes('?') ? '&' : '?') + paramString;
     }
 
     getMediaUrl(filename) {
