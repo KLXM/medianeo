@@ -2,12 +2,6 @@
 // Path: redaxo/src/addons/medianeo/boot.php
 
 if (rex::isBackend() && rex::getUser()) {
-    // Add Bootstrap CSS if not already included
-
-        rex_view::addCssFile('https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css');
-        rex_view::addJsFile('https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js');
-
-    
     // Add Sortable.js
     rex_view::addJsFile('https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js');
     
@@ -15,19 +9,26 @@ if (rex::isBackend() && rex::getUser()) {
     rex_view::addCssFile($this->getAssetsUrl('css/medianeo.css'));
     rex_view::addJsFile($this->getAssetsUrl('js/medianeo.js'));
     
-    // Add initialization
-    rex_view::addJsFile($this->getAssetsUrl('js/init.js'));
-    
     // Add custom data for JavaScript
     rex_view::setJsProperty('medianeo', [
-        'ajax_url' => rex_url::backendController(['page' => 'medianeo/ajax']),
-        'csrf_token' => rex_csrf_token::factory('medianeo')->getValue(),
-        'i18n' => [
-            'select_media' => rex_i18n::msg('medianeo_select_media', ''),
-            'apply' => rex_i18n::msg('medianeo_apply', 'Übernehmen'),
-            'cancel' => rex_i18n::msg('medianeo_cancel', 'Abbrechen'),
-            'no_media_found' => rex_i18n::msg('medianeo_no_media_found', 'Keine Medien gefunden'),
-            'loading' => rex_i18n::msg('medianeo_loading', 'Laden...')
-        ]
+        'csrf_token' => rex_csrf_token::factory('medianeo')->getValue()
     ]);
+    
+    // Register Extension Point für die Page
+    rex_extension::register('PAGES_PREPARED', function (rex_extension_point $ep) {
+        $page = $ep->getSubject();
+        
+        // Registriere die Ajax-Seite
+        $ajaxPage = new rex_be_page('ajax', rex_i18n::msg('medianeo_ajax'));
+        $ajaxPage->setPath($this->getPath('pages/ajax.php'));
+        $ajaxPage->setHidden(true);
+        
+        // Füge die Ajax-Seite als Subpage hinzu
+        if (isset($page['medianeo'])) {
+            $page['medianeo']->addSubpage($ajaxPage);
+        }
+        
+        return $page;
+    });
+    
 }
