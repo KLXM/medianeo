@@ -1,134 +1,3 @@
-createModal() {
-        const modal = document.createElement('div');
-        modal.id = 'medianeo-modal';
-        modal.className = 'modal fade';
-        modal.setAttribute('tabindex', '-1');
-        modal.setAttribute('role', 'dialog');
-        
-        // Check if filepond is available
-        const hasFilepond = this.config.has_filepond;
-        console.log('Filepond available:', hasFilepond);
-        
-        // Der Modalinhalt mit Upload-Area, wenn Filepond verfügbar ist
-        modal.innerHTML = `
-            <div class="modal-dialog modal-lg" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                        <h4 class="modal-title">Medien auswählen</h4>
-                        <nav class="medianeo-breadcrumb"></nav>
-                    </div>
-                    <div class="modal-body">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="medianeo-categories panel panel-default">
-                                    <div class="panel-heading">Kategorien</div>
-                                    <div class="panel-body"></div>
-                                </div>
-                            </div>
-                            <div class="col-md-8">
-                                ${hasFilepond ? `
-                                <div class="medianeo-upload panel panel-default">
-                                    <div class="panel-heading">
-                                        <i class="rex-icon fa-upload"></i> 
-                                        Dateien hochladen
-                                    </div>
-                                    <div class="panel-body">
-                                        <input type="file" class="medianeo-filepond" multiple />
-                                    </div>
-                                </div>
-                                ` : ''}
-                                
-                                <div class="form-group">
-                                    <input type="text" class="form-control medianeo-search" placeholder="Suchen...">
-                                </div>
-                                
-                                <div class="medianeo-files"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Abbrechen</button>
-                        <button type="button" class="btn btn-primary medianeo-apply">Übernehmen</button>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        document.body.appendChild(modal);
-        
-        // Store references
-        this.modal = $(modal);
-        this.filesContainer = modal.querySelector('.medianeo-files');
-        this.categoriesContainer = modal.querySelector('.panel-body');
-        this.searchInput = modal.querySelector('.medianeo-search');
-        this.breadcrumbContainer = modal.querySelector('.medianeo-breadcrumb');
-
-        // Initialize FilePond if available
-        if (hasFilepond) {
-            console.log('Initializing Filepond...');
-            this.initializeFilepond();
-        }
-
-        // ... rest of the modal initialization
-    }
-
-    initializeFilepond() {
-    const input = this.modal.find('.medianeo-filepond')[0];
-    
-    if (!input) {
-        console.error('Filepond input element not found!');
-        return;
-    }
-
-    if (typeof FilePond === 'undefined') {
-        console.error('FilePond is not loaded!');
-        return;
-    }
-
-    const pond = FilePond.create(input, {
-        allowMultiple: true,
-        server: {
-            url: this.config.filepond_api_url,
-            process: {
-                method: 'POST',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest'
-                },
-                withCredentials: false,
-                ondata: (formData) => {
-                    formData.append('func', 'upload');
-                    formData.append('category_id', this.currentCategory);
-                    formData.append('_csrf_token', this.config.csrf_token);
-                    return formData;
-                }
-            }
-        },
-        labelIdle: 'Dateien hierher ziehen oder <span class="filepond--label-action">durchsuchen</span>',
-        labelFileProcessing: 'Wird hochgeladen',
-        labelFileProcessingComplete: 'Upload abgeschlossen',
-        labelTapToCancel: 'Klicken zum Abbrechen',
-        labelTapToRetry: 'Klicken zum Wiederholen',
-        labelTapToUndo: 'Klicken zum Rückgängig machen',
-        instantUpload: true,
-        allowRevert: false,
-        onprocessfile: (error, file) => {
-            console.log('File processed:', file, 'Error:', error);
-            if (!error) {
-                // Reload the current category to show the new file
-                this.loadCategory(this.currentCategory);
-                // Remove the file from FilePond after successful upload
-                pond.removeFile(file.id);
-            }
-        }
-    });
-
-    console.log('Filepond instance created:', pond);
-    this.filepondInstance = pond;
-}
-
 class MediaNeoPicker {
     constructor(input) {
         this.input = input;
@@ -266,12 +135,31 @@ class MediaNeoPicker {
         }
     }
 
-    initializeFilepond() {
-        const inputElement = this.modal.find('.medianeo-filepond')[0];
-        if (!inputElement) return;
+    // ... [Rest der Klasse folgt in den nächsten Schritten]
+}
 
-        const pond = FilePond.create(inputElement, {
+// Register on document ready
+$(document).on('rex:ready', function() {
+    document.querySelectorAll('input.medianeo').forEach(input => {
+        if (!input.dataset.medianeoInitialized) {
+            new MediaNeoPicker(input);
+            input.dataset.medianeoInitialized = 'true';
+        }
+    });
+});
+
+    initializeFilepond() {
+        const input = this.modal.find('.medianeo-filepond')[0];
+        
+        if (!input || typeof FilePond === 'undefined') {
+            console.error('FilePond setup failed');
+            return;
+        }
+
+        const pond = FilePond.create(input, {
             allowMultiple: true,
+            instantUpload: true,
+            allowRevert: false,
             server: {
                 url: this.config.filepond_api_url,
                 process: {
@@ -288,43 +176,42 @@ class MediaNeoPicker {
                     }
                 }
             },
-            onprocessfile: (error, file) => {
-                if (!error) {
-                    // Reload the current category to show the new file
-                    this.loadCategory(this.currentCategory);
+            labelIdle: 'Dateien hierher ziehen oder <span class="filepond--label-action">durchsuchen</span>',
+            labelFileProcessing: 'Wird hochgeladen',
+            labelFileProcessingComplete: 'Upload abgeschlossen',
+            labelTapToCancel: 'Klicken zum Abbrechen',
+            labelTapToRetry: 'Klicken zum Wiederholen',
+            labelTapToUndo: 'Klicken zum Rückgängig machen',
+            onaddfile: (error, file) => {
+                if (error) {
+                    console.error('Error adding file:', error);
+                    return;
                 }
+                console.log('File added:', file.filename);
+            },
+            onprocessfile: (error, file) => {
+                if (error) {
+                    console.error('Error processing file:', error);
+                    return;
+                }
+                console.log('File processed:', file.filename);
+                // Reload the current category
+                this.loadCategory(this.currentCategory);
+                // Remove the file from FilePond
+                pond.removeFile(file.id);
             }
         });
 
         this.filepondInstance = pond;
     }
 
-    initSortable() {
-        new Sortable(this.previewList, {
-            animation: 150,
-            ghostClass: 'medianeo-ghost',
-            onEnd: () => this.updateValue()
-        });
-    }
-
-    loadInitialValues() {
-        const value = this.input.value;
-        if (value) {
-            const mediaIds = value.split(',');
-            mediaIds.forEach(id => this.loadMediaPreview(id));
-        }
-    }
-
     async loadCategory(categoryId) {
         this.currentCategory = categoryId;
         try {
-            const url = this.buildUrl('get_category', { category_id: categoryId });
-            const response = await fetch(url);
+            const response = await fetch(this.buildUrl('get_category', { category_id: categoryId }));
             const contentType = response.headers.get('content-type');
             
             if (!contentType || !contentType.includes('application/json')) {
-                const text = await response.text();
-                console.error('Invalid response type:', contentType, 'Response:', text);
                 throw new Error('Server returned invalid content type');
             }
             
@@ -342,38 +229,17 @@ class MediaNeoPicker {
             
         } catch (error) {
             console.error('Error loading category:', error);
-            this.showError(error.message || 'Fehler beim Laden der Kategorie');
-        }
-    }
-
-    async performSearch(term) {
-        if (term.length < 2) {
-            this.loadCategory(this.currentCategory);
-            return;
-        }
-
-        try {
-            const response = await fetch(this.buildUrl('search', { 
-                q: term,
-                category_id: this.currentCategory 
-            }));
-            
-            const result = await response.json();
-            
-            if (!result.success) {
-                throw new Error(result.error || 'Unknown error occurred');
-            }
-            
-            this.renderFiles(result.data.files);
-            
-        } catch (error) {
-            console.error('Error searching:', error);
-            this.showError('Fehler bei der Suche');
+            this.showError('Fehler beim Laden der Kategorie');
         }
     }
 
     async loadMediaPreview(mediaId) {
         try {
+            // Prüfen ob das Medium bereits in der Vorschau existiert
+            if (this.previewList.querySelector(`[data-media-id="${mediaId}"]`)) {
+                return;
+            }
+
             const response = await fetch(this.buildUrl('get_media', { media_id: mediaId }));
             const result = await response.json();
             
@@ -459,7 +325,6 @@ class MediaNeoPicker {
             </ol>
         `;
         
-        // Bind click events
         this.breadcrumbContainer.querySelectorAll('a').forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -479,7 +344,8 @@ class MediaNeoPicker {
         this.categoriesContainer.innerHTML = `
             <div class="list-group">
                 ${categories.map(cat => `
-                    <a href="#" class="list-group-item medianeo-category" data-id="${cat.id}">
+                    <a href="#" class="list-group-item medianeo-category ${this.currentCategory === cat.id ? 'active' : ''}" 
+                       data-id="${cat.id}">
                         <i class="rex-icon fa-folder-o"></i>
                         ${cat.name}
                     </a>
@@ -487,7 +353,6 @@ class MediaNeoPicker {
             </div>
         `;
         
-        // Bind category clicks
         this.categoriesContainer.querySelectorAll('.medianeo-category').forEach(category => {
             category.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -519,11 +384,11 @@ class MediaNeoPicker {
             </div>
         `;
         
-        // Bind file selection
         this.filesContainer.querySelectorAll('.medianeo-file').forEach(file => {
             file.addEventListener('click', () => {
+                const fileId = parseInt(file.dataset.id);
+                this.toggleFileSelection(fileId);
                 file.classList.toggle('selected');
-                this.toggleFileSelection(parseInt(file.dataset.id));
             });
         });
     }
@@ -537,20 +402,60 @@ class MediaNeoPicker {
     }
 
     applySelection() {
-    // Statt die Preview zu leeren, fügen wir nur neue Medien hinzu
-    this.selectedMedia.forEach((value, mediaId) => {
-        // Prüfen ob das Medium bereits in der Vorschau existiert
-        if (!this.previewList.querySelector(`[data-media-id="${mediaId}"]`)) {
+        // Nur neue Medien zur Vorschau hinzufügen
+        this.selectedMedia.forEach((value, mediaId) => {
             this.loadMediaPreview(mediaId);
+        });
+        
+        // Selection zurücksetzen
+        this.selectedMedia.clear();
+    }
+
+    async performSearch(term) {
+        if (term.length < 2) {
+            this.loadCategory(this.currentCategory);
+            return;
         }
-    });
-    
-    // Clear selection
-    this.selectedMedia.clear();
-   }
+
+        try {
+            const response = await fetch(this.buildUrl('search', { 
+                q: term,
+                category_id: this.currentCategory 
+            }));
+            
+            const result = await response.json();
+            
+            if (!result.success) {
+                throw new Error(result.error || 'Unknown error occurred');
+            }
+            
+            this.renderFiles(result.data.files);
+            
+        } catch (error) {
+            console.error('Error searching:', error);
+            this.showError('Fehler bei der Suche');
+        }
+    }
+
+    initSortable() {
+        new Sortable(this.previewList, {
+            animation: 150,
+            ghostClass: 'medianeo-ghost',
+            onEnd: () => this.updateValue()
+        });
+    }
+
+    loadInitialValues() {
+        const value = this.input.value;
+        if (value) {
+            const mediaIds = value.split(',');
+            mediaIds.forEach(id => this.loadMediaPreview(id));
+        }
+    }
 
     updateValue() {
-        const mediaIds = Array.from(this.previewList.children).map(item => item.dataset.mediaId);
+        const mediaIds = Array.from(this.previewList.children)
+            .map(item => item.dataset.mediaId);
         this.input.value = mediaIds.join(',');
         
         // Trigger change event
@@ -559,15 +464,11 @@ class MediaNeoPicker {
     }
 
     openPicker() {
-        // Reset selection
-        this.selectedMedia.clear();
-        
         // Show modal
         this.modal.modal('show');
     }
 
     buildUrl(action, params = {}) {
-        // Use simple index.php for backend
         const urlParams = {
             'rex-api-call': 'medianeo',
             func: action,
@@ -575,7 +476,6 @@ class MediaNeoPicker {
             ...params
         };
         
-        // Convert to query string
         const queryString = Object.entries(urlParams)
             .map(([key, value]) => encodeURIComponent(key) + '=' + encodeURIComponent(value))
             .join('&');
