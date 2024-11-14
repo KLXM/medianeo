@@ -536,17 +536,17 @@ class MediaNeoPicker {
     }
 
     applySelection() {
-        // Clear current preview
-        this.previewList.innerHTML = '';
-        
-        // Load previews for selected media
-        this.selectedMedia.forEach((value, mediaId) => {
+    // Statt die Preview zu leeren, fügen wir nur neue Medien hinzu
+    this.selectedMedia.forEach((value, mediaId) => {
+        // Prüfen ob das Medium bereits in der Vorschau existiert
+        if (!this.previewList.querySelector(`[data-media-id="${mediaId}"]`)) {
             this.loadMediaPreview(mediaId);
-        });
-        
-        // Clear selection
-        this.selectedMedia.clear();
-    }
+        }
+    });
+    
+    // Clear selection
+    this.selectedMedia.clear();
+   }
 
     updateValue() {
         const mediaIds = Array.from(this.previewList.children).map(item => item.dataset.mediaId);
