@@ -1,132 +1,4 @@
-createModal() {
-        const modal = document.createElement('div');
-        modal.id = 'medianeo-modal';
-        modal.className = 'modal fade';
-        modal.setAttribute('tabindex', '-1');
-        modal.setAttribute('role', 'dialog');
-        
-        // Check if filepond is available
-        const hasFilepond = this.config.has_filepond;
-        console.log('Filepond available:', hasFilepond);
-        
-        // Der Modalinhalt mit Upload-Area, wenn Filepond verfügbar ist
-        modal.innerHTML = `
-            <div class="modal-dialog modal-lg" role="document">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                            <span aria-hidden="true">&times;</span>
-                        </button>
-                        <h4 class="modal-title">Medien auswählen</h4>
-                        <nav class="medianeo-breadcrumb"></nav>
-                    </div>
-                    <div class="modal-body">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="medianeo-categories panel panel-default">
-                                    <div class="panel-heading">Kategorien</div>
-                                    <div class="panel-body"></div>
-                                </div>
-                            </div>
-                            <div class="col-md-8">
-                                ${hasFilepond ? `
-                                <div class="medianeo-upload panel panel-default">
-                                    <div class="panel-heading">
-                                        <i class="rex-icon fa-upload"></i> 
-                                        Dateien hochladen
-                                    </div>
-                                    <div class="panel-body">
-                                        <input type="file" class="medianeo-filepond" multiple />
-                                    </div>
-                                </div>
-                                ` : ''}
-                                
-                                <div class="form-group">
-                                    <input type="text" class="form-control medianeo-search" placeholder="Suchen...">
-                                </div>
-                                
-                                <div class="medianeo-files"></div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-default" data-dismiss="modal">Abbrechen</button>
-                        <button type="button" class="btn btn-primary medianeo-apply">Übernehmen</button>
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        document.body.appendChild(modal);
-        
-        // Store references
-        this.modal = $(modal);
-        this.filesContainer = modal.querySelector('.medianeo-files');
-        this.categoriesContainer = modal.querySelector('.panel-body');
-        this.searchInput = modal.querySelector('.medianeo-search');
-        this.breadcrumbContainer = modal.querySelector('.medianeo-breadcrumb');
-
-        // Initialize FilePond if available
-        if (hasFilepond) {
-            console.log('Initializing Filepond...');
-            this.initializeFilepond();
-        }
-
-        // ... rest of the modal initialization
-    }
-
-    initializeFilepond() {
-        const input = this.modal.find('.medianeo-filepond')[0];
-        console.log('Filepond input element:', input);
-        
-        if (!input) {
-            console.error('Filepond input element not found!');
-            return;
-        }
-
-        if (typeof FilePond === 'undefined') {
-            console.error('FilePond is not loaded!');
-            return;
-        }
-
-        const pond = FilePond.create(input, {
-            allowMultiple: true,
-            server: {
-                url: this.config.filepond_api_url,
-                process: {
-                    method: 'POST',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    withCredentials: false,
-                    ondata: (formData) => {
-                        formData.append('func', 'upload');
-                        formData.append('category_id', this.currentCategory);
-                        formData.append('_csrf_token', this.config.csrf_token);
-                        return formData;
-                    }
-                }
-            },
-            labelIdle: 'Dateien hierher ziehen oder <span class="filepond--label-action">durchsuchen</span>',
-            labelFileProcessing: 'Wird hochgeladen',
-            labelFileProcessingComplete: 'Upload abgeschlossen',
-            labelTapToCancel: 'Klicken zum Abbrechen',
-            labelTapToRetry: 'Klicken zum Wiederholen',
-            labelTapToUndo: 'Klicken zum Rückgängig machen',
-            onaddfile: (error, file) => {
-                console.log('File added:', file);
-            },
-            onprocessfile: (error, file) => {
-                console.log('File processed:', file, 'Error:', error);
-                if (!error) {
-                    this.loadCategory(this.currentCategory);
-                }
-            }
-        });
-
-        console.log('Filepond instance created:', pond);
-        this.filepondInstance = pond;
-    }// Path: redaxo/src/addons/medianeo/assets/js/medianeo.js
+// Path: redaxo/src/addons/medianeo/assets/js/medianeo.js
 
 class MediaNeoPicker {
     constructor(input) {
@@ -535,18 +407,19 @@ class MediaNeoPicker {
         }
     }
 
-   applySelection() {
-    // Statt die Preview zu leeren, fügen wir nur neue Medien hinzu
-    this.selectedMedia.forEach((value, mediaId) => {
-        // Prüfen ob das Medium bereits in der Vorschau existiert
-        if (!this.previewList.querySelector(`[data-media-id="${mediaId}"]`)) {
+    applySelection() {
+        // Clear current preview
+        this.previewList.innerHTML = '';
+        
+        // Load previews for selected media
+        this.selectedMedia.forEach((value, mediaId) => {
             this.loadMediaPreview(mediaId);
-        }
-    });
-    
-    // Clear selection
-    this.selectedMedia.clear();
-}
+        });
+        
+        // Clear selection
+        this.selectedMedia.clear();
+    }
+
     updateValue() {
         const mediaIds = Array.from(this.previewList.children).map(item => item.dataset.mediaId);
         this.input.value = mediaIds.join(',');
@@ -596,25 +469,6 @@ class MediaNeoPicker {
             timeout = setTimeout(() => func.apply(this, args), wait);
         };
     }
-}
-
-// Register FilePond plugins
-if (typeof FilePond !== 'undefined') {
-    // Register image preview plugin
-    if (typeof FilePondPluginImagePreview !== 'undefined') {
-        FilePond.registerPlugin(FilePondPluginImagePreview);
-    }
-    
-    // Set default FilePond options
-    FilePond.setOptions({
-        allowMultiple: true,
-        labelIdle: 'Dateien hierher ziehen oder <span class="filepond--label-action">durchsuchen</span>',
-        labelFileProcessing: 'Wird hochgeladen',
-        labelFileProcessingComplete: 'Upload abgeschlossen',
-        labelTapToCancel: 'Klicken zum Abbrechen',
-        labelTapToRetry: 'Klicken zum Wiederholen',
-        labelTapToUndo: 'Klicken zum Rückgängig machen'
-    });
 }
 
 // Initialize on document ready
