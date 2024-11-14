@@ -76,57 +76,58 @@ createModal() {
     }
 
     initializeFilepond() {
-        const input = this.modal.find('.medianeo-filepond')[0];
-        console.log('Filepond input element:', input);
-        
-        if (!input) {
-            console.error('Filepond input element not found!');
-            return;
-        }
+    const input = this.modal.find('.medianeo-filepond')[0];
+    
+    if (!input) {
+        console.error('Filepond input element not found!');
+        return;
+    }
 
-        if (typeof FilePond === 'undefined') {
-            console.error('FilePond is not loaded!');
-            return;
-        }
+    if (typeof FilePond === 'undefined') {
+        console.error('FilePond is not loaded!');
+        return;
+    }
 
-        const pond = FilePond.create(input, {
-            allowMultiple: true,
-            server: {
-                url: this.config.filepond_api_url,
-                process: {
-                    method: 'POST',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    withCredentials: false,
-                    ondata: (formData) => {
-                        formData.append('func', 'upload');
-                        formData.append('category_id', this.currentCategory);
-                        formData.append('_csrf_token', this.config.csrf_token);
-                        return formData;
-                    }
-                }
-            },
-            labelIdle: 'Dateien hierher ziehen oder <span class="filepond--label-action">durchsuchen</span>',
-            labelFileProcessing: 'Wird hochgeladen',
-            labelFileProcessingComplete: 'Upload abgeschlossen',
-            labelTapToCancel: 'Klicken zum Abbrechen',
-            labelTapToRetry: 'Klicken zum Wiederholen',
-            labelTapToUndo: 'Klicken zum Rückgängig machen',
-            onaddfile: (error, file) => {
-                console.log('File added:', file);
-            },
-            onprocessfile: (error, file) => {
-                console.log('File processed:', file, 'Error:', error);
-                if (!error) {
-                    this.loadCategory(this.currentCategory);
+    const pond = FilePond.create(input, {
+        allowMultiple: true,
+        server: {
+            url: this.config.filepond_api_url,
+            process: {
+                method: 'POST',
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                },
+                withCredentials: false,
+                ondata: (formData) => {
+                    formData.append('func', 'upload');
+                    formData.append('category_id', this.currentCategory);
+                    formData.append('_csrf_token', this.config.csrf_token);
+                    return formData;
                 }
             }
-        });
+        },
+        labelIdle: 'Dateien hierher ziehen oder <span class="filepond--label-action">durchsuchen</span>',
+        labelFileProcessing: 'Wird hochgeladen',
+        labelFileProcessingComplete: 'Upload abgeschlossen',
+        labelTapToCancel: 'Klicken zum Abbrechen',
+        labelTapToRetry: 'Klicken zum Wiederholen',
+        labelTapToUndo: 'Klicken zum Rückgängig machen',
+        instantUpload: true,
+        allowRevert: false,
+        onprocessfile: (error, file) => {
+            console.log('File processed:', file, 'Error:', error);
+            if (!error) {
+                // Reload the current category to show the new file
+                this.loadCategory(this.currentCategory);
+                // Remove the file from FilePond after successful upload
+                pond.removeFile(file.id);
+            }
+        }
+    });
 
-        console.log('Filepond instance created:', pond);
-        this.filepondInstance = pond;
-    }// Path: redaxo/src/addons/medianeo/assets/js/medianeo.js
+    console.log('Filepond instance created:', pond);
+    this.filepondInstance = pond;
+}
 
 class MediaNeoPicker {
     constructor(input) {
