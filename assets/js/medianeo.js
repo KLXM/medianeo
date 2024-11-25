@@ -407,18 +407,22 @@ class MediaNeoPicker {
         }
     }
 
-    applySelection() {
-        // Clear current preview
-        this.previewList.innerHTML = '';
-        
-        // Load previews for selected media
-        this.selectedMedia.forEach((value, mediaId) => {
+   applySelection() {
+    // Get existing media IDs
+    const existingIds = new Set(
+        Array.from(this.previewList.children).map(item => parseInt(item.dataset.mediaId))
+    );
+    
+    // Add only newly selected media that isn't already in the preview
+    this.selectedMedia.forEach((value, mediaId) => {
+        if (!existingIds.has(mediaId)) {
             this.loadMediaPreview(mediaId);
-        });
-        
-        // Clear selection
-        this.selectedMedia.clear();
-    }
+        }
+    });
+    
+    // Clear selection
+    this.selectedMedia.clear();
+}
 
     updateValue() {
         const mediaIds = Array.from(this.previewList.children).map(item => item.dataset.mediaId);
