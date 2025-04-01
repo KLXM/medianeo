@@ -119,5 +119,5 @@ MIT
 
 ## Credits
 
-- Entwickelt von [Dein Name]
+- Entwickelt von Thomas Skerbis KLXM Crossmedia GmbH
 - FilePond Integration in Zusammenarbeit mit dem [FilePond Uploader AddOn](https://github.com/KLXM/filepond_uploader) von KLXM Crossmedia GmbH
