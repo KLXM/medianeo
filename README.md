@@ -13,8 +13,6 @@ MediaNeo ist ein erweiterter Media Browser für das [FilePond Uploader AddOn](ht
 
 ## Voraussetzungen
 
-- REDAXO 5.13 oder höher
-- PHP 7.4 oder höher
 - FilePond Uploader AddOn
 - YForm (optional für YForm Value Field)
 
