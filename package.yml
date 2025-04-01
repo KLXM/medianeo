@@ -1,26 +1,28 @@
 package: medianeo
-version: '1.0.0-dev'
-author: Your Name
-supportpage: github.com/yourusername/medianeo
+version: '2.0.0'
+author: 'Dein Name'
+supportpage: https://github.com/dein-username/medianeo
 
+# Abhängigkeiten
 requires:
-    redaxo: '^5.13'
-    php:
-        version: '>=7.4'
+    redaxo: '^5.13.0'
+    php: '>=7.4'
     packages:
-        media_manager: '^2.11'
-        mediapool: '^2.11'
+        filepond_uploader: '>=1.0.0'  # Abhängigkeit zu filepond_uploader
+        yform: '>=4.0.0'              # Optional für YForm-Integration
 
+# Seiten
 page:
     title: 'MediaNeo'
-    perm: admin[]
-    hidden: true
+    perm: admin
+    icon: rex-icon fa-picture-o
     subpages:
-        ajax:
-            title: 'Ajax'
-            hidden: true
-            pjax: false
+        settings: { title: 'Einstellungen' }
 
+# Standardkonfiguration
 default_config:
-    preview_width: 400
-    preview_height: 400
+    allowed_types: 'image/*,video/*,application/pdf'
+    preview_size: 150
+
+# Beschreibung
+description: 'Ein moderner Media Picker für REDAXO mit FilePond Integration'

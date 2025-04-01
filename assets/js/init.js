@@ -1,13 +1,7 @@
 // Path: redaxo/src/addons/medianeo/assets/js/init.js
 
-document.addEventListener('DOMContentLoaded', function() {
-    // Initialize all MediaNeo fields
-    initMediaNeoFields();
-    
-    // Initialize on rex:ready for PJAX compatibility
-    $(document).on('rex:ready', function() {
+$(document).on('rex:ready', function() {
         initMediaNeoFields();
-    });
 });
 
 function initMediaNeoFields() {

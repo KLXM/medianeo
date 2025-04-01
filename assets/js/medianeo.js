@@ -1,5 +1,11 @@
 // Path: redaxo/src/addons/medianeo/assets/js/medianeo.js
 
+/**
+ * MediaNeo - Media Browser mit FilePond Integration
+ * 
+ * Diese Klasse übernimmt das Media-Browsing und übergibt
+ * Upload-Funktionalität an FilePond.
+ */
 class MediaNeoPicker {
     constructor(input) {
         this.input = input;
@@ -7,44 +13,53 @@ class MediaNeoPicker {
         this.currentCategory = 0;
         this.config = window.rex.medianeo || {};
         
+        // FilePond sollte verfügbar sein, da es eine Voraussetzung ist
+        if (typeof FilePond === 'undefined') {
+            console.error('FilePond ist nicht verfügbar. MediaNeo benötigt FilePond für die Funktionalität.');
+            return;
+        }
+        
         this.init();
     }
 
     init() {
-        // Create necessary DOM elements
+        // DOM-Elemente erstellen
         this.createElements();
         
-        // Initialize sortable
+        // Sortable initialisieren für Drag & Drop
         if (typeof Sortable !== 'undefined') {
             this.initSortable();
         }
         
-        // Load initial values
+        // Anfangswerte laden
         this.loadInitialValues();
+        
+        // Event-Listener für externe Trigger hinzufügen
+        this.input.addEventListener('medianeo:open', () => this.openPicker());
     }
 
     createElements() {
-        // Create preview container
+        // Container für Vorschau erstellen
         this.container = document.createElement('div');
         this.container.className = 'medianeo-container';
 
-        // Create preview list
+        // Liste für Vorschau erstellen
         this.previewList = document.createElement('div');
         this.previewList.className = 'medianeo-preview-list';
         this.container.appendChild(this.previewList);
 
-        // Create add button
+        // Button zum Hinzufügen erstellen
         const addButton = document.createElement('button');
         addButton.type = 'button';
-        addButton.className = 'btn btn-default medianeo-add';
+        addButton.className = 'btn btn-default medianeo-add-button';
         addButton.innerHTML = '<i class="rex-icon fa-plus"></i> Medium hinzufügen';
         addButton.addEventListener('click', () => this.openPicker());
         this.container.appendChild(addButton);
 
-        // Insert container after input
+        // Container nach dem Input einfügen
         this.input.parentNode.insertBefore(this.container, this.input.nextSibling);
         
-        // Create modal if it doesn't exist
+        // Modal erstellen, falls nicht vorhanden
         if (!document.querySelector('#medianeo-modal')) {
             this.createModal();
         }
@@ -57,38 +72,39 @@ class MediaNeoPicker {
         modal.setAttribute('tabindex', '-1');
         modal.setAttribute('role', 'dialog');
         
-        // Check if filepond is available
-        const hasFilepond = this.config.has_filepond;
-        
         modal.innerHTML = `
-            <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-dialog medianeo-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
                         <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                             <span aria-hidden="true">&times;</span>
                         </button>
                         <h4 class="modal-title">Medien auswählen</h4>
-                        <nav class="medianeo-breadcrumb"></nav>
                     </div>
                     <div class="modal-body">
-                        <div class="row">
-                            <div class="col-md-4">
-                                <div class="medianeo-categories panel panel-default">
+                        <div class="medianeo-content">
+                            <div class="medianeo-categories-container">
+                                <div class="panel panel-default">
                                     <div class="panel-heading">Kategorien</div>
-                                    <div class="panel-body"></div>
+                                    <div class="panel-body medianeo-categories"></div>
                                 </div>
                             </div>
-                            <div class="col-md-8">
-                                <div class="form-group">
-                                    <input type="text" class="form-control medianeo-search" placeholder="Suchen...">
-                                </div>
-                                ${hasFilepond ? `
-                                <div class="medianeo-upload panel panel-default">
-                                    <div class="panel-heading">Upload</div>
-                                    <div class="panel-body">
-                                        <input type="file" class="medianeo-filepond" multiple>
+                            <div class="medianeo-files-container">
+                                <div class="medianeo-breadcrumb"></div>
+                                <div class="medianeo-search-container">
+                                    <div class="input-group">
+                                        <span class="input-group-addon"><i class="rex-icon fa-search"></i></span>
+                                        <input type="text" class="form-control medianeo-search" placeholder="Suchen...">
                                     </div>
-                                </div>` : ''}
+                                </div>
+                                <div class="medianeo-upload-container">
+                                    <div class="panel panel-default">
+                                        <div class="panel-heading">Upload</div>
+                                        <div class="panel-body">
+                                            <input type="file" class="medianeo-filepond" multiple>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div class="medianeo-files"></div>
                             </div>
                         </div>
@@ -103,21 +119,26 @@ class MediaNeoPicker {
         
         document.body.appendChild(modal);
         
-        // Store references to important elements
+        // Referenzen auf wichtige Elemente speichern
         this.modal = $(modal);
         this.filesContainer = modal.querySelector('.medianeo-files');
-        this.categoriesContainer = modal.querySelector('.panel-body');
+        this.categoriesContainer = modal.querySelector('.medianeo-categories');
         this.searchInput = modal.querySelector('.medianeo-search');
         this.breadcrumbContainer = modal.querySelector('.medianeo-breadcrumb');
-
-        // Initialize FilePond if available
-        if (hasFilepond) {
-            this.initializeFilepond();
-        }
-
-        // Bind modal events
+        this.filepondInput = modal.querySelector('.medianeo-filepond');
+        
+        // Speichere Referenz im Modal für die filepond-Integration
+        modal.querySelector('.modal-content').mediaNeoPicker = this;
+        
+        // Modal-Events binden
         this.modal.on('shown.bs.modal', () => {
             this.loadCategory(0);
+            
+            // FilePond initialisieren
+            if (window.initMediaNeoFilepond) {
+                console.log('Initializing FilePond in modal');
+                window.initMediaNeoFilepond('.medianeo-filepond');
+            }
         });
 
         this.modal.on('hidden.bs.modal', () => {
@@ -129,45 +150,12 @@ class MediaNeoPicker {
             this.modal.modal('hide');
         });
 
-        // Bind search input
+        // Suchfeld binden
         if (this.searchInput) {
             this.searchInput.addEventListener('input', this.debounce(() => {
                 this.performSearch(this.searchInput.value);
             }, 300));
         }
-    }
-
-    initializeFilepond() {
-        const inputElement = this.modal.find('.medianeo-filepond')[0];
-        if (!inputElement) return;
-
-        const pond = FilePond.create(inputElement, {
-            allowMultiple: true,
-            server: {
-                url: this.config.filepond_api_url,
-                process: {
-                    method: 'POST',
-                    headers: {
-                        'X-Requested-With': 'XMLHttpRequest'
-                    },
-                    withCredentials: false,
-                    ondata: (formData) => {
-                        formData.append('func', 'upload');
-                        formData.append('category_id', this.currentCategory);
-                        formData.append('_csrf_token', this.config.csrf_token);
-                        return formData;
-                    }
-                }
-            },
-            onprocessfile: (error, file) => {
-                if (!error) {
-                    // Reload the current category to show the new file
-                    this.loadCategory(this.currentCategory);
-                }
-            }
-        });
-
-        this.filepondInstance = pond;
     }
 
     initSortable() {
@@ -181,7 +169,7 @@ class MediaNeoPicker {
     loadInitialValues() {
         const value = this.input.value;
         if (value) {
-            const mediaIds = value.split(',');
+            const mediaIds = value.split(',').filter(id => id.trim() !== '');
             mediaIds.forEach(id => this.loadMediaPreview(id));
         }
     }
@@ -191,14 +179,6 @@ class MediaNeoPicker {
         try {
             const url = this.buildUrl('get_category', { category_id: categoryId });
             const response = await fetch(url);
-            const contentType = response.headers.get('content-type');
-            
-            if (!contentType || !contentType.includes('application/json')) {
-                const text = await response.text();
-                console.error('Invalid response type:', contentType, 'Response:', text);
-                throw new Error('Server returned invalid content type');
-            }
-            
             const result = await response.json();
             
             if (!result.success) {
@@ -211,10 +191,51 @@ class MediaNeoPicker {
             this.renderCategories(data.categories);
             this.renderFiles(data.files);
             
+            // Vorhandene Auswahl wiederherstellen
+            this.restoreSelectionAfterReload();
+            
+            // FilePond über Kategoriewechsel informieren
+            if (this.filepondInput && this.filepondInput.pond) {
+                console.log('Updating FilePond category to', this.currentCategory);
+                
+                // Setze FilePond Server-Options
+                this.filepondInput.pond.setOptions({
+                    server: {
+                        url: this.config.filepond_api_url,
+                        process: {
+                            method: 'POST',
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            },
+                            withCredentials: false,
+                            ondata: (formData) => {
+                                formData.append('func', 'upload');
+                                formData.append('category_id', this.currentCategory);
+                                formData.append('_csrf_token', this.config.csrf_token);
+                                return formData;
+                            }
+                        }
+                    }
+                });
+            }
+            
         } catch (error) {
             console.error('Error loading category:', error);
             this.showError(error.message || 'Fehler beim Laden der Kategorie');
         }
+    }
+    
+    // Hilft dabei, die Auswahl nach dem Neuladen der Kategorie wiederherzustellen
+    restoreSelectionAfterReload() {
+        if (this.selectedMedia.size === 0) return;
+        
+        // Gehe durch die Datei-Elemente und markiere diejenigen, die bereits ausgewählt waren
+        this.filesContainer.querySelectorAll('.medianeo-file').forEach(file => {
+            const fileId = parseInt(file.dataset.id);
+            if (this.selectedMedia.has(fileId)) {
+                file.classList.add('selected');
+            }
+        });
     }
 
     async performSearch(term) {
@@ -330,7 +351,7 @@ class MediaNeoPicker {
             </ol>
         `;
         
-        // Bind click events
+        // Click-Events binden
         this.breadcrumbContainer.querySelectorAll('a').forEach(link => {
             link.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -358,7 +379,7 @@ class MediaNeoPicker {
             </div>
         `;
         
-        // Bind category clicks
+        // Kategorie-Klicks binden
         this.categoriesContainer.querySelectorAll('.medianeo-category').forEach(category => {
             category.addEventListener('click', (e) => {
                 e.preventDefault();
@@ -371,14 +392,14 @@ class MediaNeoPicker {
         if (!files || !this.filesContainer) return;
         
         if (files.length === 0) {
-            this.filesContainer.innerHTML = '<div class="alert alert-info">Keine Dateien in dieser Kategorie</div>';
+            this.filesContainer.innerHTML = '<div class="medianeo-no-files">Keine Dateien in dieser Kategorie</div>';
             return;
         }
         
         this.filesContainer.innerHTML = `
             <div class="medianeo-file-grid">
                 ${files.map(file => `
-                    <div class="medianeo-file ${this.selectedMedia.has(file.id) ? 'selected' : ''}" 
+                    <div class="medianeo-file ${this.selectedMedia.has(parseInt(file.id)) ? 'selected' : ''}" 
                          data-id="${file.id}">
                         ${this.getPreviewHtml(file)}
                         <div class="medianeo-file-info">
@@ -390,7 +411,7 @@ class MediaNeoPicker {
             </div>
         `;
         
-        // Bind file selection
+        // Datei-Auswahl binden
         this.filesContainer.querySelectorAll('.medianeo-file').forEach(file => {
             file.addEventListener('click', () => {
                 file.classList.toggle('selected');
@@ -405,44 +426,62 @@ class MediaNeoPicker {
         } else {
             this.selectedMedia.set(fileId, true);
         }
+        
+        console.log('Selected media:', Array.from(this.selectedMedia.keys()));
+    }
+    
+    // Datei direkt zur Auswahl hinzufügen (nach Upload mit FilePond)
+    addToSelection(fileId) {
+        if (!isNaN(fileId) && fileId > 0) {
+            this.selectedMedia.set(fileId, true);
+            
+            // Datei-Element im DOM finden und optisch markieren
+            const fileElement = this.filesContainer.querySelector(`.medianeo-file[data-id="${fileId}"]`);
+            if (fileElement) {
+                fileElement.classList.add('selected');
+            }
+            
+            console.log('Added to selection:', fileId);
+            console.log('Selected media:', Array.from(this.selectedMedia.keys()));
+        }
     }
 
-   applySelection() {
-    // Get existing media IDs
-    const existingIds = new Set(
-        Array.from(this.previewList.children).map(item => parseInt(item.dataset.mediaId))
-    );
-    
-    // Add only newly selected media that isn't already in the preview
-    this.selectedMedia.forEach((value, mediaId) => {
-        if (!existingIds.has(mediaId)) {
-            this.loadMediaPreview(mediaId);
-        }
-    });
-    
-    // Clear selection
-    this.selectedMedia.clear();
-}
+    applySelection() {
+        // Vorhandene Medien-IDs abrufen
+        const existingIds = new Set(
+            Array.from(this.previewList.children).map(item => parseInt(item.dataset.mediaId))
+        );
+        
+        // Nur neu ausgewählte Medien hinzufügen
+        this.selectedMedia.forEach((value, mediaId) => {
+            if (!existingIds.has(mediaId)) {
+                this.loadMediaPreview(mediaId);
+            }
+        });
+        
+        // Auswahl löschen
+        this.selectedMedia.clear();
+    }
 
     updateValue() {
         const mediaIds = Array.from(this.previewList.children).map(item => item.dataset.mediaId);
         this.input.value = mediaIds.join(',');
         
-        // Trigger change event
+        // Change-Event auslösen
         const event = new Event('change', { bubbles: true });
         this.input.dispatchEvent(event);
     }
 
     openPicker() {
-        // Reset selection
+        // Auswahl zurücksetzen
         this.selectedMedia.clear();
         
-        // Show modal
+        // Modal anzeigen
         this.modal.modal('show');
     }
 
     buildUrl(action, params = {}) {
-        // Use simple index.php for backend
+        // Simple index.php für Backend
         const urlParams = {
             'rex-api-call': 'medianeo',
             func: action,
@@ -450,7 +489,7 @@ class MediaNeoPicker {
             ...params
         };
         
-        // Convert to query string
+        // In Query-String umwandeln
         const queryString = Object.entries(urlParams)
             .map(([key, value]) => encodeURIComponent(key) + '=' + encodeURIComponent(value))
             .join('&');
@@ -475,12 +514,23 @@ class MediaNeoPicker {
     }
 }
 
-// Initialize on document ready
+// Beim Laden initialisieren
 $(document).on('rex:ready', function() {
+    initMediaNeoFields();
+});
+
+// Alle MediaNeo-Felder initialisieren
+function initMediaNeoFields() {
+    console.log('Initializing MediaNeo fields');
+    // Alle Input-Felder mit Klasse "medianeo" finden
     document.querySelectorAll('input.medianeo').forEach(input => {
+        // Nur initialisieren, wenn noch nicht initialisiert
         if (!input.dataset.medianeoInitialized) {
             new MediaNeoPicker(input);
             input.dataset.medianeoInitialized = 'true';
         }
     });
-});
+}
+
+// Funktion global verfügbar machen
+window.initMediaNeoFields = initMediaNeoFields;

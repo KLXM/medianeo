@@ -1,0 +1,52 @@
+# Allgemein
+medianeo = MediaNeo
+medianeo_title = MediaNeo Media Browser
+medianeo_settings = Einstellungen
+
+# Beschreibung
+medianeo_description = Verbesserter Medienbrowser mit FilePond-Integration
+
+# Navigation/Menü
+medianeo_menu = MediaNeo
+medianeo_menu_settings = Einstellungen
+
+# Einstellungen
+medianeo_settings = Einstellungen
+medianeo_settings_saved = Einstellungen wurden gespeichert
+medianeo_allowed_types = Erlaubte Dateitypen
+medianeo_allowed_types_note = Kommagetrennte Liste von Dateitypen (z.B. jpg,png,pdf). Leer lassen, um alle Typen zu erlauben.
+medianeo_preview_size = Vorschaugröße
+medianeo_preview_size_note = Größe der Medienvorschau in Pixeln
+
+# Browser
+medianeo_media_add = Medium hinzufügen
+medianeo_categories = Kategorien
+medianeo_root_category = Hauptkategorie
+medianeo_no_categories = Keine Kategorien vorhanden
+medianeo_no_files = Keine Dateien in dieser Kategorie
+medianeo_search = Suchen...
+medianeo_upload = Upload
+medianeo_cancel = Abbrechen
+medianeo_apply = Übernehmen
+medianeo_select_media = Medien auswählen
+
+# Drag & Drop
+medianeo_drag_drop = Dateien hierher ziehen oder durchsuchen
+medianeo_file_type_not_allowed = Dateityp nicht erlaubt
+medianeo_upload_in_progress = Wird hochgeladen
+medianeo_upload_complete = Upload abgeschlossen
+medianeo_upload_error = Fehler beim Upload
+medianeo_remove = Entfernen
+medianeo_abort = Abbrechen
+medianeo_retry = Wiederholen
+medianeo_proceed = Fortfahren
+
+# Meldungen
+medianeo_success_upload = Die Datei wurde erfolgreich hochgeladen
+medianeo_error_upload = Fehler beim Hochladen der Datei
+medianeo_error_loading_category = Fehler beim Laden der Kategorie
+medianeo_error_loading_media = Fehler beim Laden der Medien
+medianeo_error_search = Fehler bei der Suche
+
+# Integration
+medianeo_filepond_required = Für die volle Funktionalität wird das FilePond-AddOn benötigt
