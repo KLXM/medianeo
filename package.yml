@@ -1,14 +1,16 @@
 package: medianeo
 version: '2.0.0'
 author: 'Dein Name'
-supportpage: https://github.com/dein-username/medianeo
+supportpage: https://github.com/klxm/medianeo
+# Beschreibung
+description: 'Ein moderner Media Picker für REDAXO mit FilePond Integration'
 
 # Abhängigkeiten
 requires:
-    redaxo: '^5.13.0'
-    php: '>=7.4'
+    redaxo: '^5.18.1'
+    php: '>=8.1'
     packages:
-        filepond_uploader: '>=1.0.0'  # Abhängigkeit zu filepond_uploader
+        filepond_uploader: '>=1.5.0'  # Abhängigkeit zu filepond_uploader
         yform: '>=4.0.0'              # Optional für YForm-Integration
 
 # Seiten
@@ -21,8 +23,6 @@ page:
 
 # Standardkonfiguration
 default_config:
-    allowed_types: 'image/*,video/*,application/pdf'
+    allowed_types: 'image/*,video/*,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.openxmlformats-officedocument.presentationml.presentation'
     preview_size: 150
 
-# Beschreibung
-description: 'Ein moderner Media Picker für REDAXO mit FilePond Integration'
