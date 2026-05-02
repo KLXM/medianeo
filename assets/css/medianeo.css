@@ -1,377 +1,525 @@
-/* Path: assets/css/medianeo.css */
+:root {
+    --mn-bg: #f6f7fb;
+    --mn-surface: #ffffff;
+    --mn-border: #d6dce5;
+    --mn-text: #1f2a37;
+    --mn-subtext: #5d6b7d;
+    --mn-primary: #2b7de9;
+    --mn-primary-soft: #e8f1ff;
+    --mn-success: #1d9b5f;
+    --mn-danger: #c64444;
+    --mn-shadow: 0 8px 24px rgba(18, 35, 57, 0.12);
+}
 
-/* Container Styles */
+body.rex-theme-dark {
+    --mn-bg: #1c2330;
+    --mn-surface: #252e3d;
+    --mn-border: #3a465b;
+    --mn-text: #e6ecf5;
+    --mn-subtext: #a9b5c7;
+    --mn-primary: #74adff;
+    --mn-primary-soft: #223653;
+    --mn-success: #4dc68d;
+    --mn-danger: #ff7a7a;
+    --mn-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+}
+
+@media (prefers-color-scheme: dark) {
+    body.rex-has-theme:not(.rex-theme-light) {
+        --mn-bg: #1c2330;
+        --mn-surface: #252e3d;
+        --mn-border: #3a465b;
+        --mn-text: #e6ecf5;
+        --mn-subtext: #a9b5c7;
+        --mn-primary: #74adff;
+        --mn-primary-soft: #223653;
+        --mn-success: #4dc68d;
+        --mn-danger: #ff7a7a;
+        --mn-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+    }
+}
+
 .medianeo-container {
-    margin: 15px 0;
-    padding: 15px;
-    border: 1px solid #e4e4e4;
-    border-radius: 4px;
-    background: #f9f9f9;
+    margin: 12px 0;
+    padding: 14px;
+    border: 1px solid var(--mn-border);
+    border-radius: 8px;
+    background: linear-gradient(180deg, var(--mn-surface), var(--mn-bg));
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
-/* Preview List */
+.medianeo-controls {
+    margin-top: 12px;
+}
+
+.medianeo-add-button {
+    width: 100%;
+    border-radius: 6px;
+    font-weight: 600;
+}
+
 .medianeo-preview-list {
+    min-height: 70px;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    gap: 15px;
-    margin-bottom: 15px;
-    min-height: 60px;
-    padding: 15px;
-    background: #fff;
-    border: 2px dashed #e4e4e4;
-    border-radius: 4px;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 10px;
+    padding: 10px;
+    border: 1px dashed var(--mn-border);
+    border-radius: 8px;
+    background: var(--mn-surface);
 }
 
-/* Preview Items */
+.medianeo-preview-item {
+    position: relative;
+    border: 1px solid var(--mn-border);
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--mn-surface);
+    cursor: grab;
+}
+
+.medianeo-preview-item:active {
+    cursor: grabbing;
+}
+
+.medianeo-preview-item-ghost {
+    opacity: 0.45;
+}
+
+.medianeo-preview-item-chosen {
+    box-shadow: 0 0 0 2px var(--mn-primary-soft);
+}
+
+.medianeo-preview-item-drag {
+    transform: rotate(1deg);
+}
+
 .medianeo-preview {
     width: 100%;
-    height: 100px;
-    object-fit: contain;
-    background: #f5f5f5;
+    height: 120px;
+    object-fit: cover;
+    display: block;
+    background: var(--mn-bg);
 }
 
-.medianeo-preview.medianeo-icon {
+.medianeo-icon {
     display: flex;
     align-items: center;
     justify-content: center;
 }
 
-.medianeo-preview.medianeo-icon i {
-    font-size: 2em;
-    color: #666;
-}
-
-.medianeo-preview-item {
-    position: relative;
-    width: 150px;
-    background: #fff;
-    border: 1px solid #ddd;
-    border-radius: 4px;
-    overflow: hidden;
+.medianeo-icon .rex-icon {
+    font-size: 32px;
+    color: var(--mn-subtext);
 }
 
 .medianeo-preview-info {
-    padding: 8px;
-    font-size: 12px;
-    border-top: 1px solid #ddd;
-    background: #fff;
+    position: relative;
+    padding: 8px 34px 8px 8px;
+    border-top: 1px solid var(--mn-border);
 }
 
 .medianeo-preview-title {
     display: block;
-    font-size: 0.875rem;
+    font-size: 12px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    color: var(--mn-text);
 }
 
-/* Modal Styles - Wider modal with flexible height */
+.medianeo-remove {
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 22px;
+    height: 22px;
+    border: none;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, 0.9);
+    color: var(--mn-danger);
+}
+
+.medianeo-remove:hover {
+    background: var(--mn-danger);
+    color: #fff;
+}
+
 .modal-dialog.medianeo-dialog {
-    width: 95%;
-    max-width: 1200px; /* Much wider on large screens */
-    max-height: 90vh;
+    width: 94%;
+    max-width: 1360px;
     height: 90vh;
     margin: 5vh auto;
 }
 
 .medianeo-dialog .modal-content {
-    display: flex;
-    flex-direction: column;
     height: 100%;
+    border-radius: 10px;
+    border: 1px solid var(--mn-border);
+    overflow: hidden;
+    background: var(--mn-surface);
+}
+
+.medianeo-dialog .modal-header {
+    border-bottom: 1px solid var(--mn-border);
+    background: var(--mn-bg);
+}
+
+.medianeo-dialog .modal-title {
+    font-weight: 700;
+    color: var(--mn-text);
 }
 
 .medianeo-dialog .modal-body {
     padding: 0;
-    overflow: hidden;
-    flex: 1;
+    height: calc(100% - 126px);
+}
+
+.medianeo-dialog .modal-footer {
+    border-top: 1px solid var(--mn-border);
+    background: var(--mn-bg);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.medianeo-selection-counter {
+    margin-right: auto;
+    color: var(--mn-subtext);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+.medianeo-content {
+    display: flex;
+    height: 100%;
+}
+
+.medianeo-categories-container {
+    width: 290px;
+    min-width: 290px;
+    border-right: 1px solid var(--mn-border);
+    background: var(--mn-bg);
     display: flex;
     flex-direction: column;
 }
 
-.medianeo-dialog .modal-footer {
-    padding: 10px 15px;
-    position: sticky;
-    bottom: 0;
-    background: #fff;
-    border-top: 1px solid #e4e4e4;
-    box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
-    z-index: 100;
+.medianeo-categories-head {
+    padding: 12px;
+    border-bottom: 1px solid var(--mn-border);
 }
 
-/* Category and Files Layout */
-.medianeo-content {
+.medianeo-categories-head strong {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--mn-text);
+}
+
+.medianeo-categories {
+    overflow: auto;
+    padding: 8px;
+}
+
+.medianeo-cat-tree {
+    user-select: none;
+}
+
+.medianeo-cat-header {
     display: flex;
-    height: 100%;
+    align-items: center;
+}
+
+.medianeo-cat-children {
     overflow: hidden;
 }
 
-.medianeo-categories-container {
-    width: 250px;
-    min-width: 250px;
-    border-right: 1px solid #e4e4e4;
-    overflow-y: auto;
-    padding: 0;
+.medianeo-cat-node {
+    position: relative;
 }
 
-.medianeo-categories-container .panel {
-    margin: 0;
-    border-radius: 0;
-    border: none;
-    border-bottom: 1px solid #e4e4e4;
+.medianeo-cat-row {
+    display: flex;
+    align-items: center;
 }
 
-.medianeo-categories-container .panel-heading {
-    border-radius: 0;
+.medianeo-cat-search-empty {
+    margin: 6px 6px 2px;
+    padding: 10px;
+    border: 1px dashed var(--mn-border);
+    border-radius: 6px;
+    color: var(--mn-subtext);
+    font-size: 12px;
+    text-align: center;
+    background: var(--mn-surface);
+}
+
+.medianeo-category-link {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 7px 10px;
+    border-radius: 6px;
+    border-left: 3px solid transparent;
+    color: var(--mn-text);
+    text-decoration: none;
+    transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+.medianeo-category-link:hover {
+    background: var(--mn-primary-soft);
+    text-decoration: none;
+}
+
+.medianeo-category-link.active {
+    background: var(--mn-primary-soft);
+    color: var(--mn-primary);
+    font-weight: 600;
+    border-left-color: var(--mn-primary);
+}
+
+.medianeo-cat-home {
+    margin-bottom: 4px;
+}
+
+.medianeo-cat-toggle {
+    width: 16px;
+    text-align: center;
+    font-size: 10px;
+    color: var(--mn-subtext);
+    border-radius: 3px;
+    padding: 1px;
+    flex-shrink: 0;
+}
+
+.medianeo-category-link:hover .medianeo-cat-toggle {
+    color: var(--mn-primary);
+    background: rgba(0, 0, 0, 0.06);
+}
+
+.medianeo-cat-folder-icon {
+    width: 16px;
+    text-align: center;
+    color: var(--mn-subtext);
+    font-size: 12px;
+    flex-shrink: 0;
+}
+
+.medianeo-cat-label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .medianeo-files-container {
     flex: 1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
 }
 
-.medianeo-search-container {
-    padding: 15px;
-    border-bottom: 1px solid #e4e4e4;
-    background: #f9f9f9;
+.medianeo-breadcrumb {
+    border-bottom: 1px solid var(--mn-border);
+    background: var(--mn-bg);
+    padding: 8px 12px;
 }
 
-/* Upload Panel */
+.medianeo-breadcrumb .breadcrumb {
+    margin-bottom: 0;
+    background: transparent;
+    padding: 0;
+}
+
+.medianeo-toolbar {
+    padding: 12px;
+    border-bottom: 1px solid var(--mn-border);
+}
+
 .medianeo-upload-container {
-    padding: 15px;
-    border-bottom: 1px solid #e4e4e4;
-    background: #f9f9f9;
+    padding: 0 12px 12px;
+    border-bottom: 1px solid var(--mn-border);
 }
 
-.medianeo-upload-container .panel {
-    margin-bottom: 0;
+.medianeo-upload-title {
+    display: block;
+    margin: 0 0 6px;
+    color: var(--mn-subtext);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
 }
 
-/* FilePond Styles */
-.medianeo-filepond-container {
-    margin-bottom: 0;
+.medianeo-upload-container > .medianeo-filepond {
+    display: none;
 }
 
-/* Override FilePond Default Styles */
-.filepond--root {
-    margin-bottom: 0;
-    font-size: 14px;
-}
-
-#medianeo-modal .filepond--panel-root {
-    background-color: #fff;
-    border: 2px dashed #ced4da;
-}
-
-#medianeo-modal .filepond--drop-label {
-    color: #666;
-}
-
-#medianeo-modal .panel-body {
-    /* Ensure enough space for FilePond */
-    min-height: 120px;
-}
-
-/* Fix FilePond rendering inside modal */
-#medianeo-modal .filepond--root {
-    min-height: 100px;
-}
-
-/* Files Grid - Scrollable and responsive */
 .medianeo-files {
     flex: 1;
-    overflow-y: auto;
-    padding: 15px;
+    overflow: auto;
+    padding: 12px;
+    background: var(--mn-bg);
 }
 
-/* 3 columns on large screens, 2 on medium, 1 on small */
 .medianeo-file-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr); /* Default is 3 columns */
-    gap: 15px;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 12px;
 }
 
 .medianeo-file {
-    border: 2px solid transparent;
-    border-radius: 4px;
+    position: relative;
+    border: 1px solid var(--mn-border);
+    border-radius: 8px;
     overflow: hidden;
+    background: var(--mn-surface);
+    box-shadow: var(--mn-shadow);
     cursor: pointer;
-    background: #fff;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-    transition: all 0.2s;
+    transition: transform 0.15s ease, border-color 0.15s ease;
 }
 
 .medianeo-file:hover {
-    border-color: #0d6efd;
+    transform: translateY(-2px);
+    border-color: var(--mn-primary);
 }
 
 .medianeo-file.selected {
-    border-color: #0d6efd;
-    background: #e7f1ff;
+    border-color: var(--mn-primary);
+    box-shadow: 0 0 0 3px var(--mn-primary), 0 0 0 6px var(--mn-primary-soft), var(--mn-shadow);
+    transform: translateY(-1px);
 }
 
-.medianeo-file img {
-    width: 100%;
-    height: 150px; /* Slightly taller thumbnails */
-    object-fit: cover;
-    display: block;
-}
-
-.medianeo-file .rex-icon {
+.medianeo-file.selected::after {
+    content: "\2713";
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: var(--mn-primary);
+    color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
-    height: 150px;
-    background: #f8f9fa;
-    font-size: 2em;
-    color: #adb5bd;
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.28);
 }
 
 .medianeo-file-info {
     padding: 8px;
-    background: #fff;
-    border-top: 1px solid #dee2e6;
+}
+
+.medianeo-file-name,
+.medianeo-file-title {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
 }
 
 .medianeo-file-name {
-    display: block;
-    font-size: 0.875rem;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.medianeo-file-title {
-    display: block;
-    font-size: 0.75rem;
-    color: #6c757d;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-/* Categories */
-.medianeo-category-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-.medianeo-category {
-    padding: 8px 15px;
-    border-bottom: 1px solid #eee;
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.medianeo-category:hover {
-    background: #f5f5f5;
-}
-
-.medianeo-category.active {
-    background: #0d6efd;
-    color: #fff;
-}
-
-/* Breadcrumb */
-.medianeo-breadcrumb {
-    padding: 10px 15px;
-    border-bottom: 1px solid #e4e4e4;
-    background: #f9f9f9;
-}
-
-.medianeo-breadcrumb ol {
-    margin-bottom: 0;
-}
-
-/* Buttons */
-.medianeo-add-button {
-    width: 100%;
-}
-
-.medianeo-remove {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    width: 24px;
-    height: 24px;
-    padding: 0;
-    border: none;
-    border-radius: 50%;
-    background: rgba(255,255,255,0.9);
-    color: #dc3545;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
+    color: var(--mn-text);
     font-size: 12px;
 }
 
-.medianeo-remove:hover {
-    background: #dc3545;
-    color: #fff;
+.medianeo-file-title {
+    color: var(--mn-subtext);
+    font-size: 11px;
 }
 
-/* Empty States */
 .medianeo-no-files {
+    border: 1px dashed var(--mn-border);
+    border-radius: 8px;
+    background: var(--mn-surface);
+    color: var(--mn-subtext);
     text-align: center;
-    padding: 30px;
-    color: #6c757d;
+    padding: 30px 16px;
 }
 
-/* Drag & Drop States */
-.medianeo-ghost {
-    opacity: 0.5;
+#medianeo-modal .filepond--root {
+    margin: 0;
 }
 
-.medianeo-chosen {
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+#medianeo-modal .filepond--panel-root {
+    background-color: var(--mn-surface);
+    border: 1px dashed var(--mn-border);
 }
 
-/* Hide original input */
-input.medianeo {
+#medianeo-modal .filepond--drop-label {
+    color: var(--mn-subtext);
+}
+
+input.medianeo[data-medianeo-initialized="true"] {
     display: none;
 }
 
-/* Responsive adjustments */
-@media (max-width: 1200px) {
-    /* 2 columns on medium screens */
-    .medianeo-file-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-    
-    .medianeo-dialog .modal-dialog {
-        width: 95%;
-        max-width: 95%;
-    }
+.medianeo-demo .alert {
+    margin-bottom: 14px;
 }
 
-@media (max-width: 768px) {
-    /* Full-width modal on smaller screens */
+.medianeo-meta-modal .modal-body {
+    padding-top: 12px;
+}
+
+.medianeo-meta-layout {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 14px;
+}
+
+.medianeo-meta-preview {
+    border: 1px solid var(--mn-border);
+    border-radius: 6px;
+    background: var(--mn-bg);
+    min-height: 160px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.medianeo-meta-preview-image {
+    max-width: 100%;
+    max-height: 220px;
+    object-fit: contain;
+}
+
+.medianeo-meta-preview-icon {
+    font-size: 42px;
+    color: var(--mn-subtext);
+}
+
+.medianeo-meta-form .help-block {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+@media (max-width: 992px) {
     .modal-dialog.medianeo-dialog {
         width: 100%;
-        max-width: 100%;
-        margin: 0;
         height: 100vh;
-        max-height: 100vh;
+        margin: 0;
+        max-width: none;
     }
-    
-    /* 1 column on small screens */
-    .medianeo-file-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    /* Change layout direction on smaller screens */
+
     .medianeo-content {
         flex-direction: column;
     }
-    
+
     .medianeo-categories-container {
         width: 100%;
-        min-width: auto;
-        max-height: 200px;
+        min-width: 0;
+        max-height: 34%;
         border-right: none;
-        border-bottom: 1px solid #e4e4e4;
+        border-bottom: 1px solid var(--mn-border);
+    }
+
+    .medianeo-file-grid {
+        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    }
+
+    .medianeo-meta-layout {
+        grid-template-columns: 1fr;
     }
 }

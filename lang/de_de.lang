@@ -29,6 +29,9 @@ medianeo_upload = Upload
 medianeo_cancel = Abbrechen
 medianeo_apply = Übernehmen
 medianeo_select_media = Medien auswählen
+medianeo_selection_count = Auswahl
+medianeo_clear_selection = Auswahl leeren
+medianeo_category_filter = Kategorien filtern
 
 # Drag & Drop
 medianeo_drag_drop = Dateien hierher ziehen oder durchsuchen
@@ -47,6 +50,14 @@ medianeo_error_upload = Fehler beim Hochladen der Datei
 medianeo_error_loading_category = Fehler beim Laden der Kategorie
 medianeo_error_loading_media = Fehler beim Laden der Medien
 medianeo_error_search = Fehler bei der Suche
+
+# Demo
+medianeo_demo_hint = Demo-Seite für den modernisierten MediaNeo Picker. Die Werte werden als kommaseparierte Medien-IDs gespeichert.
+medianeo_demo_single = Einzelauswahl
+medianeo_demo_multi = Mehrfachauswahl
+medianeo_demo_show_values = Aktuelle Werte anzeigen
+medianeo_show_upload_meta_dialog = Upload-Metadaten-Dialog anzeigen
+medianeo_show_upload_meta_dialog_note = Wenn aktiviert, erscheint vor dem Upload optional ein Metadaten-Dialog (Titel, Alt-Text, Copyright, Beschreibung).
 
 # Integration
 medianeo_filepond_required = Für die volle Funktionalität wird das FilePond-AddOn benötigt

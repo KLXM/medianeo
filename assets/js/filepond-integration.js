@@ -1,21 +1,133 @@
-// Path: redaxo/src/addons/medianeo/assets/js/filepond-integration.js
+(function () {
+    'use strict';
 
-/**
- * MediaNeo FilePond Integration
- * 
- * This script enhances the integration between MediaNeo and FilePond.
- */
-(function() {
-    // Check if FilePond is available
     if (typeof FilePond === 'undefined') {
-        console.error('FilePond is not available. MediaNeo requires FilePond for file upload functionality.');
         return;
     }
-    
-    // Configuration
-    const config = window.rex.medianeo || {};
-    
-    // Register FilePond plugins if available
+
+    var config = (window.rex && window.rex.medianeo) ? window.rex.medianeo : {};
+    var fallbackInstances = new Map();
+    var originalWidgetWatchers = new Map();
+
+    function parseAllowedTypes(raw) {
+        return String(raw || '')
+            .split(',')
+            .map(function (entry) { return entry.trim(); })
+            .filter(function (entry) { return entry !== ''; });
+    }
+
+    function parseJsonSafely(value) {
+        if (!value || typeof value !== 'string') {
+            return null;
+        }
+        try {
+            return JSON.parse(value);
+        } catch (_error) {
+            return null;
+        }
+    }
+
+    function localizedLabel(fallbackDe, fallbackEn) {
+        if (config.lang === 'de_de') {
+            return fallbackDe;
+        }
+        return fallbackEn;
+    }
+
+    function clearOriginalWatcher(input) {
+        if (!originalWidgetWatchers.has(input)) {
+            return;
+        }
+
+        var watcher = originalWidgetWatchers.get(input);
+        if (watcher.intervalId) {
+            clearInterval(watcher.intervalId);
+        }
+        originalWidgetWatchers.delete(input);
+    }
+
+    function clearFallbackInstance(input) {
+        if (!fallbackInstances.has(input)) {
+            return;
+        }
+
+        var instance = fallbackInstances.get(input);
+        if (instance && instance.destroy) {
+            instance.destroy();
+        }
+        fallbackInstances.delete(input);
+        input.pond = null;
+        input.value = '';
+    }
+
+    function applyOriginalWidgetAttributes(input, mediaNeoPicker) {
+        var allowedTypes = parseAllowedTypes((mediaNeoPicker && mediaNeoPicker.allowedTypes)
+            ? mediaNeoPicker.allowedTypes.join(',')
+            : config.allowed_types);
+
+        input.setAttribute('data-widget', 'filepond');
+        input.setAttribute('data-filepond-lang', config.lang || 'de_de');
+        input.setAttribute('data-filepond-types', allowedTypes.length ? allowedTypes.join(',') : 'image/*');
+        input.setAttribute('data-filepond-maxsize', String(Number(config.max_filesize) > 0 ? Number(config.max_filesize) : 200));
+        input.setAttribute('data-filepond-maxfiles', String(Number(config.max_files) > 0 ? Number(config.max_files) : 30));
+        input.setAttribute('data-filepond-chunk-enabled', (config.enable_chunks === true || config.enable_chunks === '1' || config.enable_chunks === '|1|') ? 'true' : 'false');
+        input.setAttribute('data-filepond-chunk-size', String(Number(config.chunk_size) > 0 ? Number(config.chunk_size) : 5));
+        input.setAttribute('data-filepond-cat', String(mediaNeoPicker ? mediaNeoPicker.currentCategory : 0));
+        input.setAttribute('data-filepond-skip-meta', 'true');
+        input.setAttribute('data-filepond-title-required', 'false');
+        input.value = '';
+    }
+
+    function bootOriginalWidget(input, mediaNeoPicker) {
+        if (typeof window.initFilePond !== 'function') {
+            return input;
+        }
+
+        var uploadContainer = input.closest('.medianeo-upload-container');
+        if (uploadContainer) {
+            uploadContainer.querySelectorAll('.filepond--root').forEach(function (root) {
+                root.remove();
+            });
+        }
+
+        var replacement = input.cloneNode(false);
+        input.parentNode.replaceChild(replacement, input);
+        input = replacement;
+
+        applyOriginalWidgetAttributes(input, mediaNeoPicker);
+        window.initFilePond();
+
+        var seenValues = new Set();
+        var lastValue = '';
+        var intervalId = setInterval(function () {
+            var currentValue = String(input.value || '').trim();
+            if (!currentValue || currentValue === lastValue) {
+                return;
+            }
+
+            lastValue = currentValue;
+            currentValue.split(',').map(function (item) {
+                return item.trim();
+            }).filter(function (item) {
+                return item !== '';
+            }).forEach(function (filename) {
+                if (seenValues.has(filename)) {
+                    return;
+                }
+                seenValues.add(filename);
+                if (mediaNeoPicker) {
+                    mediaNeoPicker.handleUploadResult(filename);
+                }
+            });
+        }, 250);
+
+        originalWidgetWatchers.set(input, {
+            intervalId: intervalId,
+        });
+
+        return input;
+    }
+
     if (FilePond.registerPlugin) {
         if (typeof FilePondPluginFileValidateType !== 'undefined') {
             FilePond.registerPlugin(FilePondPluginFileValidateType);
@@ -27,193 +139,106 @@
             FilePond.registerPlugin(FilePondPluginImagePreview);
         }
     }
-    
-    // Configure FilePond defaults when used within MediaNeo
-    FilePond.setOptions({
-        // Localize FilePond labels based on REDAXO language
-        labelIdle: config.lang === 'de_de' ? 
-            'Dateien hierher ziehen oder <span class="filepond--label-action">durchsuchen</span>' : 
-            'Drag & Drop your files or <span class="filepond--label-action">Browse</span>',
-        labelFileTypeNotAllowed: config.lang === 'de_de' ? 
-            'Dateityp nicht erlaubt' : 
-            'File type not allowed',
-        labelFileProcessing: config.lang === 'de_de' ? 
-            'Wird hochgeladen' : 
-            'Uploading',
-        labelFileProcessingComplete: config.lang === 'de_de' ? 
-            'Upload abgeschlossen' : 
-            'Upload complete',
-        labelFileProcessingError: config.lang === 'de_de' ? 
-            'Fehler beim Upload' : 
-            'Error during upload',
-        labelButtonRemoveItem: config.lang === 'de_de' ? 
-            'Entfernen' : 
-            'Remove',
-        labelButtonAbortItemLoad: config.lang === 'de_de' ? 
-            'Abbrechen' : 
-            'Abort',
-        labelButtonRetryItemLoad: config.lang === 'de_de' ? 
-            'Wiederholen' : 
-            'Retry',
-        labelButtonProceed: config.lang === 'de_de' ? 
-            'Fortfahren' : 
-            'Proceed',
 
-        // Styling
-        stylePanelLayout: 'compact',
-        styleLoadIndicatorPosition: 'center bottom',
-        styleProgressIndicatorPosition: 'right bottom',
-        styleButtonRemoveItemPosition: 'right top',
-        styleButtonProcessItemPosition: 'right bottom',
-        
-        // Credits
+    FilePond.setOptions({
+        labelIdle: localizedLabel('Dateien hierher ziehen oder <span class="filepond--label-action">durchsuchen</span>', 'Drag & Drop your files or <span class="filepond--label-action">Browse</span>'),
+        labelFileTypeNotAllowed: localizedLabel('Dateityp nicht erlaubt', 'File type not allowed'),
+        labelFileProcessing: localizedLabel('Wird hochgeladen', 'Uploading'),
+        labelFileProcessingComplete: localizedLabel('Upload abgeschlossen', 'Upload complete'),
+        labelFileProcessingError: localizedLabel('Fehler beim Upload', 'Upload error'),
+        labelButtonRemoveItem: localizedLabel('Entfernen', 'Remove'),
         credits: false,
-        
-        // Other defaults
-        allowMultiple: true,
-        allowReorder: true
+        stylePanelLayout: 'compact',
+        allowReorder: true,
     });
 
-    // Track active FilePond instances
-    const filepondInstances = new Map();
+    window.initMediaNeoFilepond = function (input, mediaNeoPicker) {
+        if (!input) {
+            return null;
+        }
 
-    // Enhanced initialization function for FilePond within MediaNeo
-    window.initMediaNeoFilepond = function(selector = '.medianeo-filepond', options = {}) {
-        document.querySelectorAll(selector).forEach(function(input) {
-            // Get parent MediaNeo instance if available
-            const modalContent = input.closest('.modal-content');
-            const mediaNeoPicker = modalContent ? modalContent.mediaNeoPicker : null;
-            
-            // Destroy existing instance if there is one
-            if (filepondInstances.has(input)) {
-                console.log('Destroying existing FilePond instance');
-                const oldInstance = filepondInstances.get(input);
-                oldInstance.destroy();
-                filepondInstances.delete(input);
-                // Reset the input field
-                input.value = '';
-            }
-            
-            // Default options
-            const defaultOptions = {
-                allowMultiple: true,
-                allowReorder: true,
-                server: {
-                    url: config.filepond_api_url,
-                    process: {
-                        method: 'POST',
-                        headers: {
-                            'X-Requested-With': 'XMLHttpRequest'
-                        },
-                        withCredentials: false,
-                        ondata: (formData) => {
-                            formData.append('func', 'upload');
-                            formData.append('category_id', mediaNeoPicker?.currentCategory || 0);
-                            formData.append('_csrf_token', config.csrf_token);
-                            return formData;
-                        }
-                    }
-                },
-                onprocessfile: (error, file) => {
-                    if (!error && mediaNeoPicker) {
-                        // Speichere Kategorie
-                        const currentCategory = mediaNeoPicker.currentCategory;
-                        
-                        // Wenn Server-Antwort vorhanden, Datei zur Auswahl hinzufügen
-                        if (file.serverId) {
-                            console.log('File uploaded successfully, ID:', file.serverId);
-                            
-                            // Warte kurz, bis die Datei im System verfügbar ist
-                            setTimeout(() => {
-                                // Reload current category after successful upload
-                                mediaNeoPicker.loadCategory(currentCategory);
-                                
-                                // Versuche die Datei zu finden und zu selektieren
-                                setTimeout(() => {
-                                    const fileId = parseInt(file.serverId);
-                                    if (!isNaN(fileId)) {
-                                        const fileElement = mediaNeoPicker.filesContainer.querySelector(`.medianeo-file[data-id="${fileId}"]`);
-                                        if (fileElement) {
-                                            fileElement.classList.add('selected');
-                                            mediaNeoPicker.toggleFileSelection(fileId);
-                                        }
-                                    }
-                                }, 300);
-                            }, 500);
-                        } else {
-                            // Fallback: Einfach nur Kategorie neu laden
-                            mediaNeoPicker.loadCategory(currentCategory);
-                        }
-                    }
+        clearOriginalWatcher(input);
+        clearFallbackInstance(input);
 
-                    // Remove file from FilePond after processing is complete
-                    if (input.pond) {
-                        // We must wait a bit to avoid issues with FilePond's internal state
-                        setTimeout(() => {
-                            // Only remove successfully processed files
-                            if (!error) {
-                                input.pond.removeFile(file.id);
-                            }
-                        }, 1000);
-                    }
-                }
-            };
-            
-            // Merge with custom options
-            const mergedOptions = Object.assign({}, defaultOptions, options);
-            
-            try {
-                // Create FilePond instance
-                const pond = FilePond.create(input, mergedOptions);
-                
-                // Store FilePond instance in map for tracking
-                filepondInstances.set(input, pond);
-                
-                // Store reference to FilePond instance on the input
-                input.pond = pond;
-                
-                // Store reference to FilePond instance in MediaNeo if available
-                if (mediaNeoPicker) {
-                    mediaNeoPicker.filepondInstance = pond;
-                }
-                
-                // Add instance to parent modal for easier access
-                if (modalContent) {
-                    modalContent.filepondInstance = pond;
-                }
-                
-                console.log('FilePond initialized for', input);
-            } catch (e) {
-                console.error('Error initializing FilePond:', e);
+        if (typeof window.initFilePond === 'function') {
+            var widgetInput = bootOriginalWidget(input, mediaNeoPicker);
+            if (mediaNeoPicker) {
+                mediaNeoPicker.filepondInput = widgetInput;
             }
-        });
+            return null;
+        }
+
+        var allowedTypes = parseAllowedTypes((mediaNeoPicker && mediaNeoPicker.allowedTypes) ? mediaNeoPicker.allowedTypes.join(',') : config.allowed_types);
+
+        var processOptions = {
+            url: config.filepond_api_url,
+            method: 'POST',
+            withCredentials: false,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest',
+            },
+            ondata: function (formData) {
+                formData.append('func', 'upload');
+                formData.append('fieldName', input.name || 'filepond');
+                formData.append('category_id', mediaNeoPicker ? mediaNeoPicker.currentCategory : 0);
+                formData.append('_csrf_token', config.csrf_token || '');
+                return formData;
+            },
+            onload: function (responseText) {
+                var parsed = parseJsonSafely(responseText);
+                if (parsed && parsed.filename) {
+                    return parsed.filename;
+                }
+                return responseText;
+            },
+            onerror: function (responseText) {
+                var parsed = parseJsonSafely(responseText);
+                if (parsed && parsed.error) {
+                    return parsed.error;
+                }
+                return responseText;
+            },
+        };
+
+        var options = {
+            allowMultiple: true,
+            allowReorder: true,
+            maxFiles: Number(config.max_files) > 0 ? Number(config.max_files) : null,
+            maxFileSize: Number(config.max_filesize) > 0 ? String(config.max_filesize) + 'MB' : null,
+            acceptedFileTypes: allowedTypes.length ? allowedTypes : null,
+            chunkUploads: config.enable_chunks === true || config.enable_chunks === '1' || config.enable_chunks === '|1|',
+            chunkSize: Number(config.chunk_size) > 0 ? Number(config.chunk_size) * 1024 * 1024 : 5 * 1024 * 1024,
+            server: {
+                process: processOptions,
+            },
+            onprocessfile: function (error, file) {
+                if (!error && mediaNeoPicker) {
+                    mediaNeoPicker.handleUploadResult(file.serverId || file.filename || '');
+                }
+
+                if (!error && input.pond) {
+                    setTimeout(function () {
+                        if (input.pond) {
+                            input.pond.removeFile(file.id);
+                        }
+                    }, 600);
+                }
+            },
+        };
+
+        var pond = FilePond.create(input, options);
+        fallbackInstances.set(input, pond);
+        input.pond = pond;
+        return pond;
     };
 
-    // Handle modal events to properly manage FilePond instances
-    $(document).on('shown.bs.modal', '#medianeo-modal', function(e) {
-        console.log('Modal shown, initializing FilePond');
-        // Wait a short time to ensure the DOM is ready
-        setTimeout(() => {
-            initMediaNeoFilepond('.medianeo-filepond');
-        }, 100);
-    });
-    
-    // Cleanup FilePond when the modal is closed
-    $(document).on('hidden.bs.modal', '#medianeo-modal', function(e) {
-        console.log('Modal hidden, cleaning up FilePond');
-        const filepondInputs = e.target.querySelectorAll('.medianeo-filepond');
-        filepondInputs.forEach(input => {
-            if (filepondInstances.has(input)) {
-                const pond = filepondInstances.get(input);
-                // Clear all files but don't destroy the instance yet
-                pond.removeFiles();
-            }
+    if (typeof jQuery !== 'undefined') {
+        jQuery(document).on('hidden.bs.modal', '#medianeo-modal', function (event) {
+            var inputs = event.target.querySelectorAll('.medianeo-filepond');
+            inputs.forEach(function (input) {
+                clearOriginalWatcher(input);
+                clearFallbackInstance(input);
+            });
         });
-    });
-    
-    // Reinitialize FilePond when the page is refreshed
-    $(document).on('rex:ready', function() {
-        // Initialize any visible FilePond elements
-        initMediaNeoFilepond();
-    });
+    }
 })();

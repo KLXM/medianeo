@@ -1,7 +1,7 @@
 package: medianeo
-version: '2.0.0'
+version: '2.1.0'
 author: 'Dein Name'
-supportpage: https://github.com/klxm/medianeo
+supportpage: https://github.com/KLXM/medianeo
 # Beschreibung
 description: 'Ein moderner Media Picker für REDAXO mit FilePond Integration'
 
@@ -20,6 +20,8 @@ page:
     icon: rex-icon fa-picture-o
     subpages:
         settings: { title: 'Einstellungen' }
+        demo: { title: 'Demo' }
+        help: { title: 'translate:help', subPath: README.md, itemClass: pull-right }
 
 # Standardkonfiguration
 default_config:
